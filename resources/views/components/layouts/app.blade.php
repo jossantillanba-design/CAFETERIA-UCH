@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,9 +8,11 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-amber-50 text-gray-800">
-    <nav class="bg-blue-200 p-4" x-data="{ abierto: false }">
+    <nav class="bg-blue-500 p-4" x-data="{ abierto: false }">
         <div class="flex justify-between items-center">
-            <a href="/" class="font-bold text-white">Cafetería UCH</a>
+            <a href="/menu">
+              <img src="{{ asset('images/logo-uch.png') }}" alt="Cafetería UCH" class="h-9 sm:h-12 w-auto object-contain">
+            </a>
 
             <button @click="abierto = !abierto" class="sm:hidden text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -29,8 +32,11 @@
                     @if (in_array(auth()->user()->rol, ['administrador', 'empleado']))
                         <a href="/admin/pedidos">Pedidos</a>
                     @endif
+                    @if (auth()->user()->rol === 'cliente')
+                        <a href="/mis-pedidos">Mis pedidos</a>
+                    @endif
                     <a href="/logout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Cerrar sesión</a>
-                    @else
+                @else
                     <a href="{{ route('login') }}">Iniciar sesión</a>
                 @endauth
             </div>
@@ -44,6 +50,9 @@
                 @endif
                 @if (in_array(auth()->user()->rol, ['administrador', 'empleado']))
                     <a href="/admin/productos">Admin</a>
+                @endif
+                @if (in_array(auth()->user()->rol, ['administrador', 'empleado']))
+                    <a href="/admin/pedidos">Pedidos</a>
                 @endif
                 @if (auth()->user()->rol === 'cliente')
                     <a href="/mis-pedidos">Mis pedidos</a>

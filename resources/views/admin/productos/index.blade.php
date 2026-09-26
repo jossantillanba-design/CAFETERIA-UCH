@@ -11,6 +11,7 @@
     @endif
     
     <div class="overflow-x-auto">
+
     <table class="w-full bg-white rounded shadow">
         <thead>
             <tr class="text-left border-b">
@@ -36,5 +37,6 @@
             @endforeach
         </tbody>
     </table>
+
     </div>
 </x-layouts.app>

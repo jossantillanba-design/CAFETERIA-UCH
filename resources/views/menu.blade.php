@@ -17,7 +17,6 @@
             @endforeach
         </div>
 
-        <!-- Botón flotante del carrito -->
         <button
             @click="abierto = true"
             x-show="items.length > 0"
@@ -25,7 +24,6 @@
             🛒 <span x-text="items.length"></span> · S/<span x-text="total().toFixed(2)"></span>
         </button>
 
-        <!-- Panel lateral del carrito -->
         <div x-show="abierto" x-cloak class="fixed inset-0 bg-black/50 flex justify-end z-50" @click.self="abierto = false">
             <div class="bg-white w-full max-w-sm h-full p-6 overflow-y-auto">
                 <div class="flex justify-between items-center mb-4">
