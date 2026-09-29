@@ -18,7 +18,7 @@
     <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-slate-800">
         <div>
             <a href="/">
-                <img src="{{ asset('images/logo-white.png') }}" alt="Cafetería UCH" class="h-18 w-auto object-contain">
+                <img src="{{ asset('images/logo-white.png') }}" alt="Cafetería UCH" class="h-17 w-auto object-contain">
             </a>
         </div>
 
