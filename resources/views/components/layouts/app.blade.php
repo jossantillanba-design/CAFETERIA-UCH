@@ -26,7 +26,7 @@
                     @if (auth()->user()->rol === 'administrador')
                         <a href="/admin/dashboard">Dashboard</a>
                     @endif
-                    @if (in_array(auth()->user()->rol, ['administrador', 'empleado']))
+                    @if (in_array(auth()->user()->rol, 'administrador'))
                         <a href="/admin/productos">Admin</a>
                     @endif
                     @if (in_array(auth()->user()->rol, ['administrador', 'empleado']))
