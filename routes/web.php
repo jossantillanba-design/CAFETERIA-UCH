@@ -6,6 +6,7 @@ use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\PedidoClienteController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\GoogleController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -43,5 +44,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/mis-pedidos', [PedidoClienteController::class, 'index']);
 });
 
+Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
+Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
 
 require __DIR__.'/auth.php';

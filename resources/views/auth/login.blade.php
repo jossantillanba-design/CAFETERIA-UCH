@@ -38,7 +38,14 @@
                     {{ __('Olvidaste tu contraseña?') }}
                 </a>
             @endif
-
+        
+        <div class="mt-4 text-center">
+              <a href="{{ route('google.redirect') }}" class="inline-flex items-center justify-center gap-2 w-full border border-gray-300 rounded-md py-2 text-sm text-gray-700 hover:bg-gray-50">
+              <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="h-5 w-5">
+                      Iniciar sesión con Google
+              </a>
+        </div>
+        
             <x-primary-button class="ms-3">
                 {{ __('Iniciar sesión') }}
             </x-primary-button>

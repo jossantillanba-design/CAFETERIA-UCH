@@ -22,6 +22,7 @@ class User extends Authenticatable
     'email',
     'password',
     'rol',
+    'google_id',
 ];
     protected function casts(): array
     {
