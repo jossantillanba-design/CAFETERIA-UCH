@@ -53,18 +53,12 @@
                     Total: S/<span x-text="total().toFixed(2)"></span>
                 </div>
 
-                <form action="/pedidos" method="POST" x-show="items.length > 0" class="mt-4">
-                    @csrf
-                    <template x-for="(item, index) in items" :key="item.id">
-                        <div>
-                            <input type="hidden" :name="'productos[' + index + '][id]'" :value="item.id">
-                            <input type="hidden" :name="'productos[' + index + '][cantidad]'" :value="item.cantidad">
-                        </div>
-                    </template>
-                    <button type="submit" class="w-full bg-green-700 text-white py-2 rounded font-bold">
-                        Confirmar pedido
-                    </button>
-                </form>
+                <button
+                   @click="irAPagar()"
+                   x-show="items.length > 0"
+                   class="w-full bg-green-700 text-white py-2 rounded font-bold mt-4">
+                     Ir a pagar
+                </button>
             </div>
         </div>
     </div>
@@ -72,30 +66,34 @@
     <script>
         function carrito() {
             return {
-                items: [],
-                abierto: false,
-                init() {
-                    const guardado = localStorage.getItem('carrito');
-                    if (guardado) {
-                        this.items = JSON.parse(guardado);
-                    }
-                    this.$watch('items', () => {
-                        localStorage.setItem('carrito', JSON.stringify(this.items));
-                    });
-                },
-                agregar(id, nombre, precio) {
-                    const existente = this.items.find(i => i.id === id);
-                    if (existente) {
-                        existente.cantidad++;
-                    } else {
-                        this.items.push({ id, nombre, precio, cantidad: 1 });
-                    }
-                    this.abierto = true;
-                },
-                total() {
-                    return this.items.reduce((sum, i) => sum + (i.precio * i.cantidad), 0);
-                }
+                 items: [],
+                 abierto: false,
+                 init() {
+            const guardado = localStorage.getItem('carrito');
+            if (guardado) {
+                this.items = JSON.parse(guardado);
             }
+            this.$watch('items', () => {
+                localStorage.setItem('carrito', JSON.stringify(this.items));
+            });
+        },
+        agregar(id, nombre, precio) {
+            const existente = this.items.find(i => i.id === id);
+            if (existente) {
+                existente.cantidad++;
+            } else {
+                this.items.push({ id, nombre, precio, cantidad: 1 });
+            }
+            this.abierto = true;
+        },
+        total() {
+            return this.items.reduce((sum, i) => sum + (i.precio * i.cantidad), 0);
+        },
+        irAPagar() {
+            localStorage.setItem('carrito_checkout', JSON.stringify(this.items));
+            window.location.href = '/checkout';
         }
+    }
+}
     </script>
 </x-layouts.app>

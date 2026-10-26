@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pedido extends Model
 {
-    protected $fillable = ['cliente_id', 'atendido_por', 'estado', 'total'];
+    protected $fillable = ['cliente_id', 'atendido_por', 'estado', 'total', 'pagado', 'metodo_pago'];
 
     public function detalles()
     {

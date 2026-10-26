@@ -31,4 +31,8 @@
             <p class="text-gray-500 col-span-full">Todavía no hiciste ningún pedido.</p>
         @endforelse
     </div>
+    <script>
+    localStorage.removeItem('carrito');
+    localStorage.removeItem('carrito_checkout');
+    </script>
 </x-layouts.app>
