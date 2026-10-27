@@ -15,10 +15,10 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans text-gray-900 antialiased">
-    <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-slate-800">
+    <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-slate-800" style="background-color: #1e293b;">
         <div>
             <a href="/">
-                <img src="{{ asset('images/logo-white.png') }}" alt="Cafetería UCH" class="h-17 w-auto object-contain">
+                <img src="/images/logo-white.png" alt="Cafetería UCH" class="h-20 w-auto object-contain" style="height: 80px; width: auto;">
             </a>
         </div>
 
