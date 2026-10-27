@@ -4,4 +4,5 @@
     <path d="M20 20c-2-3 1-4-1-8" fill="none" stroke="#78350f" stroke-width="3" stroke-linecap="round"/>
     <path d="M28 20c-2-3 1-4-1-8" fill="none" stroke="#78350f" stroke-width="3" stroke-linecap="round"/>
     <path d="M36 20c-2-3 1-4-1-8" fill="none" stroke="#78350f" stroke-width="3" stroke-linecap="round"/>
+    <img src="{{ asset('images/logo-uch.png') }}" alt="Cafetería UCH" style="height: 90px; width: auto;"/>
 </svg>
