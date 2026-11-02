@@ -5,6 +5,18 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach ($productos as $producto)
                 <div class="bg-white rounded-lg shadow p-4">
+                    <div style="height:180px;" class="mb-3 rounded overflow-hidden bg-gray-100 flex items-center justify-center">
+                        @if ($producto->imagen_url)
+                            <img src="{{ $producto->imagen_url }}"
+                                 alt="{{ $producto->nombre }}"
+                                 loading="lazy"
+                                 style="width:100%;height:100%;object-fit:cover;"
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                            <span style="display:none;font-size:3rem;">🍽️</span>
+                        @else
+                            <span style="font-size:3rem;">🍽️</span>
+                        @endif
+                    </div>
                     <h2 class="text-xl font-semibold">{{ $producto->nombre }}</h2>
                     <p class="text-gray-600 mt-1">{{ $producto->descripcion }}</p>
                     <p class="text-blue-900 font-bold mt-3">S/{{ number_format($producto->precio, 2) }}</p>

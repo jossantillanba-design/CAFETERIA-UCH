@@ -15,6 +15,7 @@
     <table class="w-full bg-white rounded shadow">
         <thead>
             <tr class="text-left border-b">
+                <th class="p-3">Imagen</th>
                 <th class="p-3">Nombre</th>
                 <th class="p-3">Precio</th>
                 <th class="p-3">Acciones</th>
@@ -23,6 +24,11 @@
         <tbody>
             @foreach ($productos as $producto)
                 <tr class="border-b">
+                    <td class="p-3">
+                        @if ($producto->imagen_url)
+                            <img src="{{ $producto->imagen_url }}" alt="{{ $producto->nombre }}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;">
+                        @endif
+                    </td>
                     <td class="p-3">{{ $producto->nombre }}</td>
                     <td class="p-3">S/{{ number_format($producto->precio, 2) }}</td>
                     <td class="p-3 flex gap-3">
