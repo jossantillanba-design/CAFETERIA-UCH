@@ -34,6 +34,7 @@ class ProductoController extends Controller
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'precio' => 'required|numeric|min:0',
+            'imagen' => 'nullable|string|max:500',
         ]);
 
         Producto::create($request->all());
@@ -54,6 +55,7 @@ class ProductoController extends Controller
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'precio' => 'required|numeric|min:0',
+            'imagen' => 'nullable|string|max:500',
         ]);
 
         $producto->update($request->all());

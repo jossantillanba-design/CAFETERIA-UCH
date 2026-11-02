@@ -14,7 +14,13 @@
         <label class="block mb-2 font-semibold">Precio</label>
         <input type="number" step="0.01" name="precio" value="{{ old('precio', $producto->precio) }}" class="w-full border rounded p-2 mb-4">
 
+        <label class="block mb-2 font-semibold">Imagen (URL o ruta, ej. images/productos/brownie.jpg)</label>
+        <input type="text" name="imagen" value="{{ old('imagen', $producto->imagen) }}" class="w-full border rounded p-2 mb-4">
+
         @error('nombre')
+            <p class="text-red-600 mb-2">{{ $message }}</p>
+        @enderror
+        @error('imagen')
             <p class="text-red-600 mb-2">{{ $message }}</p>
         @enderror
         @error('precio')
