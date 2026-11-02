@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
           'rol' => \App\Http\Middleware\VerificarRol::class,
       ]);
         $middleware->trustProxies(at: '*');
+        $middleware->redirectUsersTo('/menu');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

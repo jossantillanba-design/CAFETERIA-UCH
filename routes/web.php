@@ -10,7 +10,15 @@ use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\CheckoutController;
 
 Route::get('/', function () {
-    return redirect('/login');
+    if (! auth()->check()) {
+        return redirect('/login');
+    }
+
+    return match (auth()->user()->rol) {
+        'administrador' => redirect('/admin/dashboard'),
+        'empleado' => redirect('/admin/pedidos'),
+        default => redirect('/menu'),
+    };
 });
 
 Route::get('/menu', [ProductoController::class, 'index']);
