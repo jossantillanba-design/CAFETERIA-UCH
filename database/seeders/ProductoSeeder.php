@@ -10,11 +10,11 @@ class ProductoSeeder extends Seeder
     public function run(): void
     {
         Producto::insert([
-            ['nombre' => 'Café americano', 'descripcion' => 'Café negro recién preparado.', 'precio' => 3.50, 'imagen' => 'images/productos/cafe-americano.svg', 'created_at' => now(), 'updated_at' => now()],
-            ['nombre' => 'Pan con huevo revueto', 'descripcion' => 'Pan artesanal, huevo frito', 'precio' => 1.50, 'imagen' => 'images/productos/pan-con-huevo.svg', 'created_at' => now(), 'updated_at' => now()],
-            ['nombre' => 'Pan con pollo', 'descripcion' => 'Pan artesanal, pollo y verduras frescas.', 'precio' => 1.50, 'imagen' => 'images/productos/pan-con-pollo.svg', 'created_at' => now(), 'updated_at' => now()],
-            ['nombre' => 'Pan con salchicha huachana', 'descripcion' => 'Horneada, con queso derretido.', 'precio' => 2.00, 'imagen' => 'images/productos/pan-con-salchicha.svg', 'created_at' => now(), 'updated_at' => now()],
-            ['nombre' => 'Pan con queso', 'descripcion' => 'Horneada, con queso derretido.', 'precio' => 2.00, 'imagen' => 'images/productos/pan-con-queso.svg', 'created_at' => now(), 'updated_at' => now()],
+            ['nombre' => 'Café americano', 'descripcion' => 'Café negro recién preparado.', 'precio' => 3.50, 'imagen' => 'images/productos/cafe-americano.jpg', 'created_at' => now(), 'updated_at' => now()],
+            ['nombre' => 'Pan con huevo revueto', 'descripcion' => 'Pan artesanal, huevo frito', 'precio' => 1.50, 'imagen' => 'images/productos/pan-con-huevo.jpg', 'created_at' => now(), 'updated_at' => now()],
+            ['nombre' => 'Pan con pollo', 'descripcion' => 'Pan artesanal, pollo y verduras frescas.', 'precio' => 1.50, 'imagen' => 'images/productos/pan-con-pollo.jpg', 'created_at' => now(), 'updated_at' => now()],
+            ['nombre' => 'Pan con salchicha huachana', 'descripcion' => 'Horneada, con queso derretido.', 'precio' => 2.00, 'imagen' => 'images/productos/pan-con-salchicha-huachana.jpg', 'created_at' => now(), 'updated_at' => now()],
+            ['nombre' => 'Pan con queso', 'descripcion' => 'Horneada, con queso derretido.', 'precio' => 2.00, 'imagen' => 'images/productos/pan-con-queso.jpg', 'created_at' => now(), 'updated_at' => now()],
             ['nombre' => 'Quinua', 'descripcion' => 'Bebida caliente.', 'precio' => 3.00, 'imagen' => 'images/productos/quinua.svg', 'created_at' => now(), 'updated_at' => now()],
             ['nombre' => 'Empanada de queso', 'descripcion' => 'Horneada, con queso derretido.', 'precio' => 4.00, 'imagen' => 'images/productos/empanada-queso.svg', 'created_at' => now(), 'updated_at' => now()],
             ['nombre' => 'Empanada de pollo', 'descripcion' => 'Horneada, con pollo.', 'precio' => 4.50, 'imagen' => 'images/productos/empanada-pollo.svg', 'created_at' => now(), 'updated_at' => now()],
