@@ -10,7 +10,7 @@ class ProductoController extends Controller
     // Menú público
     public function index()
     {
-        $productos = Producto::all();
+        $productos = Producto::where('activo', true)->get();
         return view('menu', ['productos' => $productos]);
     }
 
@@ -63,11 +63,13 @@ class ProductoController extends Controller
         return redirect('/admin/productos')->with('mensaje', 'Producto actualizado correctamente.');
     }
 
-    // Elimina un producto
-    public function destroy(Producto $producto)
-    {
-        $producto->delete();
+    // Activa o desactiva un producto
+    public function toggle(Producto $producto)
+{
+    $producto->update(['activo' => ! $producto->activo]);
 
-        return redirect('/admin/productos')->with('mensaje', 'Producto eliminado.');
-    }
+    $mensaje = $producto->activo ? 'Producto activado.' : 'Producto desactivado.';
+
+    return redirect('/admin/productos')->with('mensaje', $mensaje);
+}
 }

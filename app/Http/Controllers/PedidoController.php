@@ -6,6 +6,7 @@ use App\Models\Pedido;
 use App\Models\Producto;
 use App\Models\DetallePedido;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class PedidoController extends Controller
 {
@@ -35,7 +36,7 @@ class PedidoController extends Controller
     // Formulario para crear un ticket manual
     public function create()
     {
-        $productos = Producto::all();
+        $productos = Producto::where('activo', true)->get();
         return view('admin.pedidos.create', ['productos' => $productos]);
     }
 
@@ -44,7 +45,7 @@ class PedidoController extends Controller
     {
         $request->validate([
             'productos' => 'required|array|min:1',
-            'productos.*.id' => 'required|exists:productos,id',
+            'productos.*.id' => ['required', Rule::exists('productos', 'id')->where('activo', true)],
             'productos.*.cantidad' => 'required|integer|min:1',
         ]);
 

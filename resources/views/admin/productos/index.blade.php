@@ -18,6 +18,7 @@
                 <th class="p-3">Imagen</th>
                 <th class="p-3">Nombre</th>
                 <th class="p-3">Precio</th>
+                <th class="p-3">Estado</th>
                 <th class="p-3">Acciones</th>
             </tr>
         </thead>
@@ -32,11 +33,18 @@
                     <td class="p-3">{{ $producto->nombre }}</td>
                     <td class="p-3">S/{{ number_format($producto->precio, 2) }}</td>
                     <td class="p-3 flex gap-3">
-                        <a href="/admin/productos/{{ $producto->id }}/editar" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Editar</a>
-                        <form action="/admin/productos/{{ $producto->id }}" method="POST" onsubmit="return confirm('¿Eliminar este producto?')">
+                        <span class="text-xs font-semibold px-3 py-1 rounded-full {{ $producto->activo ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600' }}">
+                            {{ $producto->activo ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </td>
+                    <td class="p-3 flex gap-3">
+                        <a href="/admin/productos/{{ $producto->id }}/editar" class="text-blue-600">Editar</a>
+                        <form action="/admin/productos/{{ $producto->id }}/toggle" method="POST">
                             @csrf
-                            @method('DELETE')
-                            <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Eliminar</button>
+                            @method('PATCH')
+                            <button type="submit" class="{{ $producto->activo ? 'text-red-600' : 'text-green-600' }}">
+                                {{ $producto->activo ? 'Desactivar' : 'Activar' }}
+                            </button>
                         </form>
                     </td>
                 </tr>

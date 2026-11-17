@@ -39,7 +39,7 @@ Route::middleware(['auth', 'rol:administrador'])->group(function () {
     Route::post('/admin/productos', [ProductoController::class, 'store']);
     Route::get('/admin/productos/{producto}/editar', [ProductoController::class, 'edit']);
     Route::put('/admin/productos/{producto}', [ProductoController::class, 'update']);
-    Route::delete('/admin/productos/{producto}', [ProductoController::class, 'destroy']);
+    Route::patch('/admin/productos/{producto}/toggle', [ProductoController::class, 'toggle']);
 });
 
 

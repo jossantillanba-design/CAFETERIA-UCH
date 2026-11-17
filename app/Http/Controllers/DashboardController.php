@@ -19,7 +19,7 @@ class DashboardController extends Controller
 
         $pedidosPendientes = Pedido::whereIn('estado', ['pendiente', 'en_preparacion'])->count();
 
-        $totalProductos = Producto::count();
+        $totalProductos = Producto::where('activo', true)->count();
 
         $ultimosPedidos = Pedido::with('cliente')
             ->orderBy('created_at', 'desc')

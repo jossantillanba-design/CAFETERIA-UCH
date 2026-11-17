@@ -6,6 +6,7 @@ use App\Models\Pedido;
 use App\Models\Producto;
 use App\Models\DetallePedido;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class CheckoutController extends Controller
 {
@@ -18,7 +19,7 @@ class CheckoutController extends Controller
     {
         $request->validate([
             'productos' => 'required|array|min:1',
-            'productos.*.id' => 'required|exists:productos,id',
+            'productos.*.id' => ['required', Rule::exists('productos', 'id')->where('activo', true)],
             'productos.*.cantidad' => 'required|integer|min:1',
             'numero_tarjeta' => 'required|string|min:12',
             'nombre_tarjeta' => 'required|string',

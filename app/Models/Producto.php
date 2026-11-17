@@ -7,9 +7,8 @@ use Illuminate\Support\Str;
 
 class Producto extends Model
 {
-    protected $fillable = ['nombre', 'descripcion', 'precio', 'imagen'];
-
-    // Imagen por defecto según el nombre, para cuando el campo "imagen" está vacío
+    protected $fillable = ['nombre', 'descripcion', 'precio', 'imagen', 'activo'];
+    protected $casts = ['activo' => 'boolean',];
     protected static array $imagenesPorNombre = [
         'cafe-americano'             => 'cafe-americano.jpg',
         'pan-con-huevo-revueto'      => 'pan-con-huevo.jpg',
@@ -23,8 +22,6 @@ class Producto extends Model
         'empanada-de-carne'          => 'empanada-carne.svg',
         'brownie'                    => 'brownie.svg',
     ];
-
-    // URL para <img>: enlace completo o ruta relativa dentro de /public
     public function getImagenUrlAttribute(): ?string
     {
         $imagen = $this->imagen;
