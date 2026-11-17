@@ -37,7 +37,11 @@ class ProductoController extends Controller
             'imagen' => 'nullable|string|max:500',
         ]);
 
-        Producto::create($request->all());
+        $datos = $request->all();
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('productos', 'imagen')) {
+            unset($datos['imagen']);
+        }
+        Producto::create($datos);
 
         return redirect('/admin/productos')->with('mensaje', 'Producto creado correctamente.');
     }
@@ -58,7 +62,11 @@ class ProductoController extends Controller
             'imagen' => 'nullable|string|max:500',
         ]);
 
-        $producto->update($request->all());
+        $datos = $request->all();
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('productos', 'imagen')) {
+            unset($datos['imagen']);
+        }
+        $producto->update($datos);
 
         return redirect('/admin/productos')->with('mensaje', 'Producto actualizado correctamente.');
     }
