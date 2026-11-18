@@ -18,8 +18,8 @@
                 <th class="p-3">Imagen</th>
                 <th class="p-3">Nombre</th>
                 <th class="p-3">Precio</th>
-                <th class="p-3">Estado</th>
                 <th class="p-3">Acciones</th>
+                <th class="p-3">Estado</th>
             </tr>
         </thead>
         <tbody>
