@@ -1,6 +1,3 @@
-<script>
-    localStorage.removeItem('carrito');
-</script>
 <x-layouts.app>
     <h1 class="text-3xl font-bold mb-6">Mis pedidos</h1>
 
@@ -25,14 +22,25 @@
                     @endforeach
                 </ul>
                 <p class="font-bold text-blue-900">Total: S/{{ number_format($pedido->total, 2) }}</p>
+
+                @if ($pedido->pagado)
+                    <p class="text-xs text-green-700 mt-1">Pagado · {{ $pedido->metodo_pago }}</p>
+                    @if ($pedido->codigo_transaccion)
+                        <p class="text-xs text-gray-400">Código: {{ $pedido->codigo_transaccion }}</p>
+                    @endif
+                @else
+                    <p class="text-xs text-yellow-700 mt-1">Pago pendiente: {{ $pedido->metodo_pago ?? 'por definir' }}</p>
+                @endif
+
                 <p class="text-xs text-gray-400 mt-2">{{ $pedido->created_at->format('d/m/Y H:i') }}</p>
             </div>
         @empty
             <p class="text-gray-500 col-span-full">Todavía no hiciste ningún pedido.</p>
         @endforelse
     </div>
+
     <script>
-    localStorage.removeItem('carrito');
-    localStorage.removeItem('carrito_checkout');
+        localStorage.removeItem('carrito');
+        localStorage.removeItem('carrito_checkout');
     </script>
 </x-layouts.app>

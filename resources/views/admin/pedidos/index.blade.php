@@ -29,6 +29,19 @@
 
                 <p class="font-bold text-blue-900 mb-3">Total: S/{{ number_format($pedido->total, 2) }}</p>
 
+                @if ($pedido->pagado)
+                    <p class="text-xs text-green-700 mb-3">Pagado · {{ $pedido->metodo_pago }}</p>
+                @else
+                    <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mb-3">
+                        <p class="text-sm text-yellow-800 mb-2">Pendiente de cobro en caja</p>
+                        <form action="/admin/pedidos/{{ $pedido->id }}/pagar" method="POST">
+                            @csrf
+                            @method('PUT')
+                            <button type="submit" class="w-full bg-green-700 text-white py-1 rounded text-sm">Registrar pago en efectivo</button>
+                        </form>
+                    </div>
+                @endif
+
                 <form action="/admin/pedidos/{{ $pedido->id }}/estado" method="POST">
                     @csrf
                     @method('PUT')

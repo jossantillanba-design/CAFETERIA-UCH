@@ -48,6 +48,7 @@ Route::middleware(['auth', 'rol:administrador,empleado'])->group(function () {
     Route::put('/admin/pedidos/{pedido}/estado', [PedidoController::class, 'actualizarEstado']);
     Route::get('/admin/pedidos/crear', [PedidoController::class, 'create']);
     Route::post('/admin/pedidos', [PedidoController::class, 'store']);
+    Route::put('/admin/pedidos/{pedido}/pagar', [PedidoController::class, 'marcarPagado']);
 });
 
 Route::middleware('auth')->group(function () {

@@ -74,4 +74,15 @@ class PedidoController extends Controller
 
         return redirect('/admin/pedidos')->with('mensaje', 'Ticket creado correctamente.');
     }
+    public function marcarPagado(Pedido $pedido)
+    {
+    if (! $pedido->pagado) {
+        $pedido->update([
+            'pagado' => true,
+            'metodo_pago' => 'Efectivo (cobrado en caja)',
+        ]);
+    }
+
+    return redirect('/admin/pedidos')->with('mensaje', 'Pago del pedido #' . $pedido->id . ' registrado.');
+    }
 }

@@ -11,6 +11,7 @@ class DashboardController extends Controller
     {
         $ventasHoy = Pedido::whereDate('created_at', today())
             ->where('estado', '!=', 'cancelado')
+            ->where('pagado', true)
             ->sum('total');
 
         $pedidosHoy = Pedido::whereDate('created_at', today())
