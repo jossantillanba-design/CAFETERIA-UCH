@@ -1,5 +1,6 @@
 <x-layouts.app>
     @php
+    @php
         $hoy = now();
         $heroTarjetas = collect($productosMenu)
             ->filter(fn (array $producto): bool => ! empty($producto['imagen']))
@@ -20,9 +21,11 @@
             ]);
         }
 
+        $fechaTexto = ucfirst($hoy->copy()->locale('es')->translatedFormat('l, j \d\e F \d\e Y'));
+        $heroImg = $heroTarjetas->first()['imagen'] ?? null;
+
         $horaActual = (int) $hoy->format('G');
         $comedorAbierto = $hoy->dayOfWeek !== 0 && $horaActual >= 7 && $horaActual < 18;
-        $turno = $horaActual < 11 ? 'Desayuno' : ($horaActual < 15 ? 'Almuerzo' : 'Tarde');
     @endphp
 
     <script>
@@ -33,465 +36,251 @@
         window.heroTarjetas = @js($heroTarjetas);
     </script>
 
-    <div x-data="catalogoUCH()" x-init="init()" x-cloak class="w-full bg-uch-bg">
-        <!-- Hero institucional -->
-        <section class="relative w-full h-[360px] sm:h-[400px] lg:h-[420px] overflow-hidden bg-uch-navy hero-principal select-none">
-            <template x-for="(tarjeta, indice) in heroTarjetas" :key="tarjeta.nombre + '-' + indice">
-                <img x-show="indiceHero === indice"
-                     x-transition.opacity
-                     :src="tarjeta.imagen"
-                     :alt="'Plato UCH: ' + tarjeta.nombre"
-                     class="absolute inset-0 w-full h-full object-cover">
-            </template>
-            <div class="absolute inset-0 bg-gradient-to-r from-[#1B3668]/95 via-[#1B3668]/80 to-transparent"></div>
+    <div class="hasp-page" x-data="catalogoUCH()" x-init="init()" x-cloak
+         @abrir-carrito.window="abierto = true"
+         @keydown.escape.window="abierto = false">
 
-            <div class="relative max-w-7xl mx-auto h-full px-6 lg:px-12 flex items-center z-10">
-                <div class="max-w-xl flex flex-col items-start gap-4">
-                    <span class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-uch-amber text-uch-navy font-bold text-xs tracking-wider shadow-sm">
-                        <x-icon name="school" class="w-4 h-4" />
-                        CAMPUS LOS OLIVOS • #PENSAMOSDIFERENTE
-                    </span>
-                    <h1 class="font-rubik text-headline-lg-mobile sm:text-[38px] lg:text-headline-lg font-extrabold leading-tight tracking-tight text-white">
-                        Tu almuerzo UCH, listo sin hacer cola
-                    </h1>
-                    <p class="font-open text-body-md text-white/90 leading-relaxed">
-                        Arma tu menú de 3 tiempos o pide un snack entre clases y recógelo en barra.
-                    </p>
-                    <div class="pt-2 flex flex-wrap items-center gap-3">
-                        <a href="#menus-del-dia"
-                           class="inline-flex items-center gap-2 bg-uch-coral hover:bg-uch-coral-dark text-white active:scale-95 transition-all font-rubik font-bold px-6 py-3 rounded-xl shadow-lg text-sm">
-                            <span>Armar menú de hoy</span>
-                            <span class="material-symbols-outlined text-[18px]">arrow_downward</span>
-                        </a>
-                        <span class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white/90 text-xs font-medium backdrop-blur-sm">
-                            <span class="text-uch-amber text-sm leading-none">★</span>
-                            Incluye crema de ají y refresco
-                        </span>
-                    </div>
+        <!-- HERO -->
+        <section class="hasp-hero">
+            @if ($heroImg)
+                <div class="hasp-hero-bg-img" style="background-image: url('{{ $heroImg }}')"></div>
+            @endif
+            <div class="hasp-hero-inner">
+                <div class="hasp-hero-pill">
+                    <span class="hasp-dot"></span>
+                    {{ $comedorAbierto ? 'Menú disponible hoy' : 'Comedor cerrado ahora' }} · {{ $fechaTexto }}
                 </div>
-            </div>
-
-            <template x-if="heroTarjetas.length > 1">
-                <div>
-                    <button type="button" @click="cambiarHero(-1)" aria-label="Diapositiva anterior"
-                            class="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 hover:bg-white text-uch-navy shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-20">
-                        <span class="material-symbols-outlined text-[24px]">chevron_left</span>
-                    </button>
-                    <button type="button" @click="cambiarHero(1)" aria-label="Siguiente diapositiva"
-                            class="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 hover:bg-white text-uch-navy shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-20">
-                        <span class="material-symbols-outlined text-[24px]">chevron_right</span>
-                    </button>
-                    <div class="absolute bottom-5 right-6 lg:right-12 flex items-center gap-2 z-20">
-                        <template x-for="(tarjeta, indice) in heroTarjetas" :key="'punto-' + indice">
-                            <button type="button" @click="indiceHero = indice" :aria-label="'Ver ' + tarjeta.nombre"
-                                    :class="indiceHero === indice ? 'w-6 bg-uch-coral' : 'w-2 bg-white/60 hover:bg-white'"
-                                    class="h-2 rounded-full transition-all shadow-sm"></button>
-                        </template>
-                    </div>
+                <h1>Bienvenido a<br><em>Grupo HASP Service</em></h1>
+                <p>Pide tu almuerzo en línea y recógelo en caja sin hacer cola. Menú universitario, ejecutivo y light cada día.</p>
+                <div class="hasp-hero-cta">
+                    <a href="#menus-del-dia" class="hasp-btn-primary">Ver menú de hoy</a>
+                    <a href="#productos" class="hasp-btn-ghost">Ver productos</a>
                 </div>
-            </template>
-        </section>
-
-        <!-- Estado operativo -->
-        <section class="w-full bg-white border-b border-uch-border shadow-sm">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3 flex flex-wrap items-center justify-between gap-3 text-uch-text">
-                <div class="flex flex-wrap items-center gap-3 sm:gap-4 text-body-sm">
-                    <div class="flex items-center gap-2">
-                        <span class="relative flex h-2.5 w-2.5">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-uch-teal opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-uch-teal"></span>
-                        </span>
-                        <span class="font-bold">{{ $comedorAbierto ? 'Comedor abierto' : 'Comedor cerrado' }}</span>
-                    </div>
-                    <span class="text-uch-border select-none hidden sm:inline">|</span>
-                    <div class="flex items-center gap-1.5 text-uch-muted font-medium">
-                        <x-icon name="schedule" class="w-4 h-4 text-uch-blue" />
-                        <span>Tiempo estimado: <strong class="text-uch-text font-semibold">8 min</strong></span>
-                    </div>
-                    <span class="text-uch-border select-none hidden md:inline">|</span>
-                    <div class="flex items-center gap-1.5 text-uch-muted font-medium">
-                        <x-icon name="location" class="w-4 h-4 text-uch-coral" />
-                        <span>Recojo: <strong class="text-uch-text font-semibold">Barra Rápida - Pabellón A</strong></span>
-                    </div>
+                <div class="hasp-hero-info">
+                    <div class="hasp-info-chip"><span>🕐</span> Lun – Vie, 7:00 am – 5:00 pm · Sáb, 7:00 am – 3:00 pm</div>
+                    <div class="hasp-info-chip"><span>📍</span> Comedor UCH · 1er Piso</div>
+                    <div class="hasp-info-chip"><span>💳</span> Efectivo, tarjeta, Yape, Plin</div>
                 </div>
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide {{ $comedorAbierto ? 'bg-uch-teal/10 text-uch-teal' : 'bg-uch-bg text-uch-muted' }}">
-                    <span class="w-1.5 h-1.5 rounded-full {{ $comedorAbierto ? 'bg-uch-teal' : 'bg-uch-muted' }}"></span>
-                    Turno {{ $turno }}
-                </span>
             </div>
         </section>
 
-        <!-- Menús del día -->
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 w-full" id="menus-del-dia">
-            <div class="mb-6">
-                <span class="text-uch-blue font-bold text-xs uppercase tracking-wider">OFERTA DE HOY</span>
-                <h2 class="font-rubik text-headline-md text-uch-navy font-bold tracking-tight">Menús armables de 3 tiempos</h2>
-            </div>
+        <svg class="hasp-wave" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 48" preserveAspectRatio="none" aria-hidden="true"><path d="M0,48 C360,0 1080,0 1440,48 L1440,48 L0,48 Z"/></svg>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <template x-for="menu in menusVisibles" :key="menu.id">
-                    <article class="relative bg-uch-surface rounded-[18px] p-6 shadow-uch-card hover:shadow-uch-card-hover transition-all duration-300 flex flex-col justify-between overflow-hidden">
-                        <div class="absolute top-0 inset-x-0 h-1" :style="{ backgroundColor: colorMenu(menu.tipo) }"></div>
+        <div class="hasp-main">
+
+            <!-- MENÚ DEL DÍA -->
+            <section id="menus-del-dia" style="padding-top: 2rem;">
+                <div class="hasp-section-header">
+                    <div class="hasp-section-title">
+                        <h2>Menú del día</h2>
+                        <span class="hasp-pill hasp-pill-green">Hoy disponible</span>
+                    </div>
+                </div>
+
+                <div class="hasp-fecha-banner">
+                    <div class="hasp-fecha-left">
+                        <div class="hasp-fecha-icon">📅</div>
                         <div>
-                            <div class="flex items-center justify-between gap-2 mb-4">
-                                <span class="px-2.5 py-1 rounded-full text-xs font-bold"
-                                      :style="{ backgroundColor: colorMenu(menu.tipo) + '1A', color: colorMenu(menu.tipo) }"
-                                      x-text="menu.etiqueta || 'Menú del día'"></span>
-                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-uch-teal/10 text-uch-teal flex items-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-uch-teal"></span>
-                                    <span x-text="racionesMenu(menu)"></span>
-                                </span>
+                            <div class="hasp-fecha-label">Fecha de servicio</div>
+                            <div class="hasp-fecha-valor">{{ $fechaTexto }}</div>
+                        </div>
+                    </div>
+                    <div class="hasp-estado-disponible {{ $comedorAbierto ? '' : 'hasp-cerrado' }}">
+                        <div class="hasp-dot-green"></div>
+                        {{ $comedorAbierto ? 'Atendiendo ahora' : 'Fuera de horario' }} · Turno {{ $turno }}
+                    </div>
+                </div>
+
+                <div class="hasp-menus-grid">
+                    <template x-for="menu in menusVisibles" :key="menu.id">
+                        <article class="hasp-menu-card" :class="'hasp-card-' + tema(menu.tipo).clase">
+                            <img class="hasp-menu-card-img" :src="menu.imagen" :alt="menu.titulo" loading="lazy">
+                            <div class="hasp-menu-card-header">
+                                <span class="hasp-menu-type-badge" :class="'hasp-badge-' + tema(menu.tipo).badge"
+                                      x-text="tema(menu.tipo).icono + ' ' + tema(menu.tipo).nombre"></span>
+                                <div class="hasp-menu-price">
+                                    <span x-show="menu.esPrecioVariable" style="margin-right: 0.2rem;">desde</span>
+                                    <b x-text="'S/ ' + (menu.esPrecioVariable ? menu.precioVisible : precioMenu(menu)).toFixed(2)"></b>
+                                    <span>/ persona</span>
+                                </div>
                             </div>
 
-                            <h3 class="font-rubik text-headline-sm text-uch-navy font-bold mb-4" x-text="menu.titulo"></h3>
+                            <div class="hasp-menu-card-body">
+                                <div>
+                                    <div class="hasp-menu-name" x-text="menu.titulo"></div>
+                                    <div class="hasp-menu-sub" x-text="racionesMenu(menu)"></div>
+                                </div>
 
-                            <div class="space-y-3 font-open text-body-md text-uch-muted">
-                                <template x-for="tiempo in [
-                                    { clave: 'entrada', etiqueta: 'Entrada' },
-                                    { clave: 'fondo', etiqueta: 'Fondo' },
-                                    { clave: 'refresco', etiqueta: 'Refresco' },
-                                ]" :key="tiempo.clave">
-                                    <div class="flex items-start gap-2.5" x-show="menu.opciones[tiempo.clave].length > 0">
-                                        <span class="w-1.5 h-1.5 rounded-full mt-2 shrink-0" :style="{ backgroundColor: colorMenu(menu.tipo) }"></span>
-                                        <div class="min-w-0">
-                                            <strong class="text-uch-text font-semibold" x-text="tiempo.etiqueta + ': '"></strong>
-                                            <span x-text="menu.opciones[tiempo.clave].slice(0, 2).map((opcion) => opcion.nombre).join(' / ')"></span>
+                                <template x-for="paso in pasos" :key="paso.tiempo">
+                                    <div class="hasp-fondo-row" x-show="menu.opciones[paso.tiempo].length > 0">
+                                        <div class="hasp-fondo-label" x-text="paso.titulo"></div>
+                                        <div class="hasp-fondo-opts" role="radiogroup" :aria-label="paso.titulo">
+                                            <template x-for="opcion in menu.opciones[paso.tiempo]" :key="opcion.id">
+                                                <div class="hasp-fondo-opt" role="radio" tabindex="0"
+                                                     :aria-checked="sel[menu.id] && sel[menu.id][paso.tiempo] === opcion.id ? 'true' : 'false'"
+                                                     :class="{
+                                                         'hasp-selected': sel[menu.id] && sel[menu.id][paso.tiempo] === opcion.id,
+                                                         'hasp-disabled': !opcionDisponible(opcion),
+                                                     }"
+                                                     @click="elegir(menu, paso.tiempo, opcion)"
+                                                     @keydown.enter.prevent="elegir(menu, paso.tiempo, opcion)"
+                                                     @keydown.space.prevent="elegir(menu, paso.tiempo, opcion)">
+                                                    <span class="hasp-fondo-opt-text" x-text="opcion.nombre"></span>
+                                                    <span class="hasp-fondo-opt-meta" x-text="detalleOpcion(menu, paso.tiempo, opcion)"></span>
+                                                    <div class="hasp-fondo-radio"></div>
+                                                </div>
+                                            </template>
                                         </div>
                                     </div>
                                 </template>
                             </div>
-                        </div>
 
-                        <div class="pt-4 border-t border-uch-border flex items-center justify-between mt-auto">
-                            <div class="flex flex-col">
-                                <span class="text-xs text-uch-muted font-medium" x-show="menu.esPrecioVariable">Desde</span>
-                                <span class="font-rubik text-price-tag text-uch-navy font-bold leading-tight" x-text="'S/ ' + menu.precioVisible.toFixed(2)"></span>
-                            </div>
-                            <button type="button"
-                                    @click="abrirMenu(menu)"
-                                    :disabled="menu.agotado"
-                                    class="inline-flex items-center gap-1.5 bg-uch-navy hover:bg-uch-navy-dark active:scale-95 text-white font-open font-semibold px-4 py-2.5 rounded-[10px] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                                <span x-text="menu.agotado ? 'Agotado' : 'Armar menú'"></span>
-                                <x-icon name="arrow_forward" class="w-4 h-4" x-show="!menu.agotado" />
-                            </button>
-                        </div>
-                    </article>
-                </template>
-            </div>
-
-            <div x-show="menusVisibles.length === 0" x-cloak class="py-8 text-center">
-                <p class="font-rubik text-headline-sm text-uch-navy" x-text="hayFiltrosActivos ? 'Sin menús con estos filtros' : 'Sin menús para tu búsqueda'"></p>
-            </div>
-        </section>
-
-        <!-- Al paso y Combos -->
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-8 w-full">
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-                <div>
-                    <h2 class="font-rubik text-headline-md text-uch-navy font-bold tracking-tight">Al paso y Combos</h2>
-                    <p class="font-open text-body-sm text-uch-muted mt-0.5">Para acompañar tus clases o recargar energía al instante</p>
-                </div>
-            </div>
-
-            <div class="flex flex-wrap items-end justify-between gap-4 mt-2 mb-6" @click.outside="filtroAbierto = null">
-                <div class="flex flex-col gap-1.5">
-                    <span class="text-[11px] font-bold tracking-wider text-uch-muted uppercase">FILTRAR POR</span>
-                    <div class="flex flex-wrap items-center gap-2.5">
-                        <div class="relative">
-                            <button type="button" @click="filtroAbierto = filtroAbierto === 'categoria' ? null : 'categoria'"
-                                    :class="categoriaActiva !== 'Todos' ? 'border-uch-blue text-uch-blue' : 'border-uch-border text-uch-navy'"
-                                    class="bg-uch-surface border shadow-sm rounded-full px-4 py-2 text-sm font-open font-semibold flex items-center gap-2 hover:border-uch-blue transition-colors">
-                                <span class="material-symbols-outlined text-[18px] text-uch-blue">grid_view</span>
-                                <span x-text="categoriaActiva === 'Todos' ? 'Categoría' : categoriaActiva"></span>
-                                <span class="material-symbols-outlined text-[18px] text-uch-muted">keyboard_arrow_down</span>
-                            </button>
-                            <div x-show="filtroAbierto === 'categoria'" x-cloak class="absolute left-0 top-full mt-2 w-52 bg-uch-surface rounded-xl shadow-uch-card-hover border border-uch-border p-2 z-30">
-                                <template x-for="categoria in categorias" :key="categoria.slug">
-                                    <button type="button" @click="categoriaActiva = categoria.nombre; filtroAbierto = null"
-                                            :class="categoriaActiva === categoria.nombre ? 'bg-uch-blue/10 text-uch-blue' : 'text-uch-text hover:bg-uch-bg'"
-                                            class="w-full text-left px-3 py-2 rounded-lg text-sm font-open font-medium transition-colors"
-                                            x-text="categoria.nombre"></button>
-                                </template>
-                            </div>
-                        </div>
-
-                        <div class="relative">
-                            <button type="button" @click="filtroAbierto = filtroAbierto === 'precio' ? null : 'precio'"
-                                    :class="precioFiltro !== 'todos' ? 'border-uch-blue text-uch-blue' : 'border-uch-border text-uch-navy'"
-                                    class="bg-uch-surface border shadow-sm rounded-full px-4 py-2 text-sm font-open font-semibold flex items-center gap-2 hover:border-uch-blue transition-colors">
-                                <span x-text="precioFiltro === 'todos' ? 'Precio' : etiquetaPrecio"></span>
-                                <span class="material-symbols-outlined text-[18px] text-uch-muted">keyboard_arrow_down</span>
-                            </button>
-                            <div x-show="filtroAbierto === 'precio'" x-cloak class="absolute left-0 top-full mt-2 w-52 bg-uch-surface rounded-xl shadow-uch-card-hover border border-uch-border p-2 z-30">
-                                <template x-for="opcion in [
-                                    { valor: 'todos', etiqueta: 'Todos los precios' },
-                                    { valor: 'hasta5', etiqueta: 'Hasta S/ 5.00' },
-                                    { valor: '5a10', etiqueta: 'S/ 5.00 - S/ 10.00' },
-                                    { valor: 'desde10', etiqueta: 'Desde S/ 10.00' },
-                                ]" :key="opcion.valor">
-                                    <button type="button" @click="precioFiltro = opcion.valor; filtroAbierto = null"
-                                            :class="precioFiltro === opcion.valor ? 'bg-uch-blue/10 text-uch-blue' : 'text-uch-text hover:bg-uch-bg'"
-                                            class="w-full text-left px-3 py-2 rounded-lg text-sm font-open font-medium transition-colors"
-                                            x-text="opcion.etiqueta"></button>
-                                </template>
-                            </div>
-                        </div>
-
-                        <div class="relative">
-                            <button type="button" @click="filtroAbierto = filtroAbierto === 'etiqueta' ? null : 'etiqueta'"
-                                    :class="etiquetaFiltro !== 'todas' ? 'border-uch-blue text-uch-blue' : 'border-uch-border text-uch-navy'"
-                                    class="bg-uch-surface border shadow-sm rounded-full px-4 py-2 text-sm font-open font-semibold flex items-center gap-2 hover:border-uch-blue transition-colors">
-                                <span x-text="etiquetaFiltro === 'todas' ? 'Etiqueta' : etiquetaEtiqueta"></span>
-                                <span class="material-symbols-outlined text-[18px] text-uch-muted">keyboard_arrow_down</span>
-                            </button>
-                            <div x-show="filtroAbierto === 'etiqueta'" x-cloak class="absolute left-0 top-full mt-2 w-52 bg-uch-surface rounded-xl shadow-uch-card-hover border border-uch-border p-2 z-30">
-                                <template x-for="opcion in [
-                                    { valor: 'todas', etiqueta: 'Todas' },
-                                    { valor: 'popular', etiqueta: 'Popular' },
-                                    { valor: 'rapido', etiqueta: 'Rápido' },
-                                    { valor: 'disponible', etiqueta: 'Disponible' },
-                                    { valor: 'agotado', etiqueta: 'Agotado' },
-                                ]" :key="opcion.valor">
-                                    <button type="button" @click="etiquetaFiltro = opcion.valor; filtroAbierto = null"
-                                            :class="etiquetaFiltro === opcion.valor ? 'bg-uch-blue/10 text-uch-blue' : 'text-uch-text hover:bg-uch-bg'"
-                                            class="w-full text-left px-3 py-2 rounded-lg text-sm font-open font-medium transition-colors"
-                                            x-text="opcion.etiqueta"></button>
-                                </template>
-                            </div>
-                        </div>
-
-                        <span class="text-xs text-uch-muted font-medium ml-2">
-                            Mostrando <span x-text="menusVisibles.length + filtrados.length"></span> opciones
-                        </span>
-                        <button type="button" x-show="hayFiltrosActivos" x-cloak @click="limpiarFiltros()"
-                                class="text-xs font-bold text-uch-blue hover:text-uch-navy transition-colors">
-                            Limpiar
-                        </button>
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-1.5">
-                    <span class="text-[11px] font-bold tracking-wider text-uch-muted uppercase">ORDENAR POR</span>
-                    <div class="relative">
-                        <button type="button" @click="filtroAbierto = filtroAbierto === 'orden' ? null : 'orden'"
-                                class="w-[240px] bg-uch-surface border border-uch-border rounded-full px-5 py-2 text-sm text-uch-navy font-open font-semibold flex items-center justify-between shadow-sm hover:border-uch-blue transition-colors">
-                            <span x-text="etiquetaOrden"></span>
-                            <span class="material-symbols-outlined text-[18px] text-uch-muted">keyboard_arrow_down</span>
-                        </button>
-                        <div x-show="filtroAbierto === 'orden'" x-cloak class="absolute right-0 top-full mt-2 w-60 bg-uch-surface rounded-xl shadow-uch-card-hover border border-uch-border p-2 z-30">
-                            <template x-for="opcion in [
-                                { valor: 'popular', etiqueta: 'Más pedidos' },
-                                { valor: 'precio-asc', etiqueta: 'Precio: menor a mayor' },
-                                { valor: 'precio-desc', etiqueta: 'Precio: mayor a menor' },
-                                { valor: 'nombre', etiqueta: 'Nombre A-Z' },
-                            ]" :key="opcion.valor">
-                                <button type="button" @click="ordenFiltro = opcion.valor; filtroAbierto = null"
-                                        :class="ordenFiltro === opcion.valor ? 'bg-uch-blue/10 text-uch-blue' : 'text-uch-text hover:bg-uch-bg'"
-                                        class="w-full text-left px-3 py-2 rounded-lg text-sm font-open font-medium transition-colors"
-                                        x-text="opcion.etiqueta"></button>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <template x-for="producto in filtrados" :key="producto.id">
-                    <article class="bg-uch-surface rounded-2xl overflow-hidden shadow-uch-card hover:shadow-uch-card-hover transition-all group flex flex-col">
-                        <div class="relative h-44 w-full overflow-hidden bg-uch-bg">
-                            <template x-if="producto.imagen">
-                                <img :src="producto.imagen"
-                                     :alt="producto.nombre"
-                                     loading="lazy"
-                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                            </template>
-                            <template x-if="!producto.imagen">
-                                <div class="w-full h-full flex items-center justify-center text-uch-muted">
-                                    <x-icon name="restaurant" class="w-10 h-10" />
-                                </div>
-                            </template>
-                            <span class="absolute top-3 left-3 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow"
-                                  :style="{ backgroundColor: producto.color }"
-                                  x-text="producto.categoria"></span>
-                            <div x-show="!producto.disponible" x-cloak class="absolute inset-0 bg-uch-navy/45 flex items-center justify-center">
-                                <span class="px-3 py-1.5 rounded-full bg-white text-uch-navy text-xs font-bold shadow">Agotado</span>
-                            </div>
-                        </div>
-                        <div class="p-4 flex flex-col justify-between flex-1">
-                            <div>
-                                <h4 class="font-rubik text-base text-uch-navy font-bold leading-snug line-clamp-1" x-text="producto.nombre"></h4>
-                                <p class="font-open text-xs text-uch-muted mt-1 line-clamp-1" x-text="producto.descripcion"></p>
-                            </div>
-                            <div class="flex items-center justify-between mt-4 pt-3 border-t border-uch-border">
-                                <span class="font-rubik text-lg text-uch-navy font-bold" x-text="'S/ ' + producto.precio.toFixed(2)"></span>
+                            <div class="hasp-menu-card-footer">
                                 <button type="button"
-                                        @click="agregar(producto)"
-                                        :disabled="!producto.disponible"
-                                        :class="!producto.disponible ? 'bg-uch-muted cursor-not-allowed' : (feedbackId === producto.id ? 'bg-uch-blue' : 'bg-uch-coral hover:bg-uch-coral-dark')"
-                                        class="flex items-center gap-1 text-white font-open font-semibold text-xs px-3.5 py-2 rounded-lg transition-all shadow-sm disabled:opacity-70">
-                                    <x-icon name="check" class="w-4 h-4" x-show="feedbackId === producto.id" />
-                                    <x-icon name="add" class="w-4 h-4" x-show="feedbackId !== producto.id" />
-                                    <span x-text="!producto.disponible ? 'Agotado' : (feedbackId === producto.id ? feedbackMensaje : 'Agregar')"></span>
-                                </button>
+                                        class="hasp-btn-add"
+                                        :class="'hasp-btn-add-' + tema(menu.tipo).clase"
+                                        :disabled="menu.agotado || !menuListo(menu)"
+                                        @click="agregarMenu(menu)"
+                                        x-text="menu.agotado ? 'Agotado' : (feedbackId === 'm' + menu.id ? feedbackMensaje : '+ Agregar al carrito')"></button>
                             </div>
-                        </div>
-                    </article>
-                </template>
-            </div>
-
-            <div x-show="filtrados.length === 0" x-cloak class="flex-col items-center justify-center py-space-xl text-center">
-                <div class="w-16 h-16 rounded-full bg-uch-cyan/15 flex items-center justify-center mb-space-sm">
-                    <x-icon name="restaurant" class="w-8 h-8 text-uch-blue" />
-                </div>
-                <p class="font-rubik text-headline-sm text-uch-navy">Sin resultados</p>
-            </div>
-        </section>
-
-        <!-- Carrito flotante -->
-        <button type="button"
-                x-show="items.length > 0"
-                x-cloak
-                @click="abierto = true"
-                class="fixed bottom-6 right-6 z-40 flex items-center gap-3 bg-uch-navy text-white pl-5 pr-3 py-3 rounded-full shadow-uch-card-hover hover:bg-uch-navy-dark transition-colors">
-            <x-icon name="shopping_bag" class="w-5 h-5" />
-            <span class="font-rubik text-sm font-semibold"><span x-text="items.length"></span> items</span>
-            <span class="w-px h-5 bg-white/25"></span>
-            <span class="font-rubik text-sm font-bold">S/ <span x-text="total().toFixed(2)"></span></span>
-        </button>
-
-        <!-- Panel del pedido -->
-        <div x-show="abierto"
-             x-cloak
-             class="fixed inset-0 z-[60] bg-uch-navy/50 flex justify-end"
-             @click.self="abierto = false"
-             x-transition.opacity>
-            <aside class="w-full max-w-sm h-full bg-uch-surface p-space-lg overflow-y-auto shadow-2xl">
-                <div class="flex justify-between items-center mb-space-lg">
-                    <h2 class="font-rubik text-xl font-bold text-uch-navy">Tu pedido</h2>
-                    <button type="button" @click="abierto = false" aria-label="Cerrar pedido" class="text-uch-muted hover:text-uch-navy transition-colors">
-                        <x-icon name="close" class="w-5 h-5" />
-                    </button>
+                        </article>
+                    </template>
                 </div>
 
-                <div class="flex flex-col gap-space-md">
-                    <template x-for="(item, index) in items" :key="item.id">
-                        <div class="flex justify-between items-start gap-space-sm border-b border-uch-border pb-space-md">
-                            <div class="min-w-0">
-                                <p class="font-rubik font-semibold text-sm text-uch-text truncate" x-text="item.nombre"></p>
-                                <p class="font-open text-xs text-uch-muted truncate" x-text="item.detalle || ('S/ ' + item.precio.toFixed(2) + ' c/u')"></p>
-                                <p class="font-open text-xs text-uch-blue font-semibold">S/ <span x-text="item.precio.toFixed(2)"></span> c/u</p>
+                <div x-show="menusVisibles.length === 0" x-cloak class="hasp-empty">
+                    <span x-text="hayFiltrosActivos ? 'Sin menús con estos filtros.' : 'No hay menús que coincidan con tu búsqueda.'"></span>
+                </div>
+            </section>
+
+            <!-- PRODUCTOS -->
+            <section id="productos" style="padding-top: 1rem;">
+                <div class="hasp-section-header">
+                    <div class="hasp-section-title">
+                        <h2>Productos</h2>
+                        <span class="hasp-pill hasp-pill-brand">Cafetería</span>
+                    </div>
+                </div>
+
+                <div class="hasp-cat-tabs">
+                    <template x-for="categoria in categorias" :key="categoria.slug">
+                        <button type="button" class="hasp-cat-tab"
+                                :class="{ 'hasp-active': categoriaActiva === categoria.nombre }"
+                                @click="categoriaActiva = categoria.nombre"
+                                x-text="categoria.nombre"></button>
+                    </template>
+                </div>
+
+                <div class="hasp-filtros">
+                    <select class="hasp-select" x-model="precioFiltro" aria-label="Filtrar por precio">
+                        <option value="todos">Todos los precios</option>
+                        <option value="hasta5">Hasta S/ 5.00</option>
+                        <option value="5a10">S/ 5.00 - S/ 10.00</option>
+                        <option value="desde10">Desde S/ 10.00</option>
+                    </select>
+                    <select class="hasp-select" x-model="etiquetaFiltro" aria-label="Filtrar por etiqueta">
+                        <option value="todas">Todas las etiquetas</option>
+                        <option value="popular">Popular</option>
+                        <option value="rapido">Rápido</option>
+                        <option value="disponible">Disponible</option>
+                        <option value="agotado">Agotado</option>
+                    </select>
+                    <select class="hasp-select" x-model="ordenFiltro" aria-label="Ordenar productos">
+                        <option value="popular">Más pedidos</option>
+                        <option value="precio-asc">Precio: menor a mayor</option>
+                        <option value="precio-desc">Precio: mayor a menor</option>
+                        <option value="nombre">Nombre A-Z</option>
+                    </select>
+                    <span class="hasp-count">Mostrando <span x-text="menusVisibles.length + filtrados.length"></span> opciones</span>
+                    <button type="button" class="hasp-link-btn" x-show="hayFiltrosActivos" x-cloak @click="limpiarFiltros()">Limpiar</button>
+                </div>
+
+                <div class="hasp-products-grid">
+                    <template x-for="producto in filtrados" :key="producto.id">
+                        <div class="hasp-product-card">
+                            <div class="hasp-product-media">
+                                <template x-if="producto.imagen">
+                                    <img class="hasp-product-img" :src="producto.imagen" :alt="producto.nombre" loading="lazy">
+                                </template>
+                                <template x-if="!producto.imagen">
+                                    <div class="hasp-product-ph">🍽️</div>
+                                </template>
+                                <div class="hasp-agotado" x-show="!producto.disponible" x-cloak><span>Agotado</span></div>
                             </div>
-                            <div class="flex items-center gap-space-sm shrink-0">
-                                <button type="button" @click="cambiarCantidad(index, -1)" aria-label="Quitar una unidad" class="w-7 h-7 rounded-full border border-uch-border text-uch-navy hover:bg-uch-bg">−</button>
-                                <span class="font-rubik text-sm font-bold w-4 text-center" x-text="item.cantidad"></span>
-                                <button type="button" @click="cambiarCantidad(index, 1)" aria-label="Agregar una unidad" class="w-7 h-7 rounded-full border border-uch-border text-uch-navy hover:bg-uch-bg">+</button>
-                                <button type="button" @click="quitar(index)" aria-label="Eliminar producto" class="text-uch-coral hover:text-uch-coral-dark transition-colors">
-                                    <x-icon name="delete" class="w-4 h-4" />
-                                </button>
+                            <div class="hasp-product-info">
+                                <div class="hasp-product-name" x-text="producto.nombre"></div>
+                                <div class="hasp-product-cat" x-text="producto.categoria"></div>
+                                <div class="hasp-product-bottom">
+                                    <span class="hasp-product-price" x-text="'S/ ' + producto.precio.toFixed(2)"></span>
+                                    <button type="button" class="hasp-btn-add-sm"
+                                            :disabled="!producto.disponible"
+                                            :aria-label="'Agregar ' + producto.nombre"
+                                            :title="feedbackId === producto.id ? feedbackMensaje : 'Agregar'"
+                                            @click="agregar(producto)"
+                                            x-text="feedbackId === producto.id ? (feedbackMensaje.startsWith('✓') ? '✓' : '✕') : '+'"></button>
+                                </div>
                             </div>
                         </div>
                     </template>
                 </div>
 
-                <div x-show="items.length > 0" x-cloak class="mt-space-lg">
-                    <div class="flex justify-between items-center font-rubik text-lg font-bold text-uch-navy">
-                        <span>Total</span>
-                        <span>S/ <span x-text="total().toFixed(2)"></span></span>
-                    </div>
-                    <button type="button"
-                            @click="irAPagar()"
-                            class="w-full mt-space-md bg-uch-coral text-white py-3 rounded-lg font-rubik font-semibold hover:bg-uch-coral-dark active:scale-95 transition-all">
-                        Ir a pagar
-                    </button>
-                </div>
-            </aside>
+                <div x-show="filtrados.length === 0" x-cloak class="hasp-empty">Sin resultados. Prueba con otra categoría o limpia los filtros.</div>
+            </section>
         </div>
 
-        <!-- Modal para armar menú -->
-        <div x-show="modalMenuAbierto" x-cloak class="fixed inset-0 z-[70] flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-uch-navy/60 backdrop-blur-sm" @click="modalMenuAbierto = false"></div>
-            <div class="relative w-full max-w-lg bg-uch-surface rounded-card shadow-uch-card-hover max-h-[90vh] overflow-y-auto" @click.outside="modalMenuAbierto = false">
-                <template x-if="menuSeleccion">
-                    <div class="p-6">
-                        <div class="flex items-start justify-between gap-4 mb-5">
-                            <div>
-                                <span class="text-label-md uppercase tracking-widest text-uch-blue" x-text="menuSeleccion.etiqueta || 'Menú del día'"></span>
-                                <h2 class="font-rubik text-headline-md text-uch-navy" x-text="menuSeleccion.titulo"></h2>
-                            </div>
-                            <button type="button" @click="modalMenuAbierto = false" class="p-2 rounded-lg bg-uch-bg text-uch-muted hover:text-uch-navy shrink-0">
-                                <x-icon name="close" class="w-5 h-5" />
-                            </button>
-                        </div>
+        <!-- FOOTER -->
+        <footer class="hasp-footer">
+            <p><strong>Grupo HASP Service</strong> · Cafetería UCH · Comedor Universitario, 1er Piso</p>
+            <p style="margin-top: 0.3rem;">Comprometidos con tu alimentación · Lun – Vie 7:00 am – 5:00 pm · Sáb 7:00 am – 3:00 pm</p>
+        </footer>
 
-                        <div class="space-y-4">
-                            <template x-for="paso in [
-                                { tiempo: 'entrada', titulo: '1. Elige tu entrada' },
-                                { tiempo: 'fondo', titulo: '2. Elige tu plato principal' },
-                                { tiempo: 'refresco', titulo: '3. Elige tu refresco' },
-                            ]" :key="paso.tiempo">
-                                <div class="rounded-xl border border-uch-border p-4">
-                                    <p class="font-open text-body-sm font-semibold text-uch-navy mb-3" x-text="paso.titulo"></p>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                        <template x-for="opcion in menuSeleccion.opciones[paso.tiempo]" :key="opcion.id">
-                                            <label class="flex items-center justify-between gap-2 rounded-lg border px-3 py-2.5 cursor-pointer transition-colors"
-                                                   :class="seleccionMenu[paso.tiempo] === opcion.id ? 'border-uch-blue bg-uch-blue/5' : 'border-uch-border hover:bg-uch-bg'">
-                                                <span class="flex items-start gap-2 min-w-0">
-                                                    <input type="radio" :name="'opcion-' + paso.tiempo" :value="opcion.id" x-model.number="seleccionMenu[paso.tiempo]" class="mt-0.5 text-uch-blue focus:ring-uch-blue">
-                                                    <span class="min-w-0">
-                                                        <span class="block font-open text-body-sm text-uch-navy font-semibold truncate" x-text="opcion.nombre"></span>
-                                                        <span class="block text-[11px] text-uch-muted" x-text="opcion.stock === null ? 'Sin límite' : (opcion.stock > 0 ? opcion.stock + ' raciones' : 'Agotado')"></span>
-                                                    </span>
-                                                </span>
-                                                <span class="font-open text-body-sm font-bold text-uch-navy shrink-0" x-text="opcion.precio !== null ? 'S/ ' + opcion.precio.toFixed(2) : ''"></span>
-                                            </label>
-                                        </template>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
+        <!-- CARRITO -->
+        <div class="hasp-cart-overlay" :class="{ 'hasp-open': abierto }" @click="abierto = false"></div>
+        <aside class="hasp-cart-panel" :class="{ 'hasp-open': abierto }" :aria-hidden="abierto ? 'false' : 'true'">
+            <div class="hasp-cart-header">
+                <h3>🛒 Mi carrito</h3>
+                <button type="button" class="hasp-btn-close" @click="abierto = false" aria-label="Cerrar carrito">✕</button>
+            </div>
 
-                        <div class="flex items-center justify-between gap-3 mt-5 pt-4 border-t border-uch-border">
-                            <div>
-                                <span class="block text-[11px] uppercase tracking-wide text-uch-muted" x-text="menuSeleccion.esPrecioVariable ? 'Precio según tu plato' : 'Precio del menú'"></span>
-                                <span class="font-rubik text-price-tag text-uch-navy" x-text="'S/ ' + precioMenu.toFixed(2)"></span>
+            <div class="hasp-cart-items">
+                <div class="hasp-empty-cart" x-show="items.length === 0">
+                    <div class="hasp-big-icon">🛒</div>
+                    <p>Tu carrito está vacío.<br>Agrega algo del menú.</p>
+                </div>
+
+                <template x-for="(item, index) in items" :key="item.id">
+                    <div class="hasp-cart-item">
+                        <template x-if="item.imagen">
+                            <img class="hasp-cart-item-img" :src="item.imagen" :alt="item.nombre" onerror="this.style.display='none'">
+                        </template>
+                        <template x-if="!item.imagen">
+                            <div class="hasp-cart-item-ph">🍽️</div>
+                        </template>
+                        <div class="hasp-cart-item-info">
+                            <div class="hasp-cart-item-name" x-text="item.nombre"></div>
+                            <div class="hasp-cart-item-sub" x-text="item.detalle || ('S/ ' + item.precio.toFixed(2) + ' c/u')"></div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem;">
+                            <div class="hasp-cart-qty">
+                                <button type="button" class="hasp-qty-btn" @click="cambiarCantidad(index, -1)" aria-label="Quitar una unidad">−</button>
+                                <span class="hasp-qty-num" x-text="item.cantidad"></span>
+                                <button type="button" class="hasp-qty-btn" @click="cambiarCantidad(index, 1)" aria-label="Agregar una unidad">+</button>
                             </div>
-                            <button type="button"
-                                    @click="agregarMenu()"
-                                    :disabled="!menuListoParaAgregar"
-                                    class="inline-flex items-center gap-2 bg-uch-coral text-white px-5 py-2.5 rounded-xl font-semibold text-body-sm hover:bg-uch-coral-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                                <x-icon name="add_shopping_cart" class="w-5 h-5" />
-                                Agregar al pedido
-                            </button>
+                            <span class="hasp-cart-item-price" x-text="'S/ ' + (item.precio * item.cantidad).toFixed(2)"></span>
                         </div>
                     </div>
                 </template>
             </div>
-        </div>
-    </div>
 
-    <footer class="w-full bg-uch-navy text-white relative mt-8">
-        <div class="w-full flex h-1.5">
-            <div class="w-1/3 bg-uch-cyan"></div>
-            <div class="w-1/3 bg-uch-teal"></div>
-            <div class="w-1/3 bg-uch-coral"></div>
-        </div>
-        <div class="max-w-7xl mx-auto px-6 lg:px-12 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
-            <div class="flex flex-col gap-1">
-                <div class="flex items-center justify-center md:justify-start gap-2">
-                    <img src="{{ asset('images/uch-logo-blanco.svg') }}" alt="UCH" class="h-7 w-auto object-contain">
-                    <span class="px-2 py-0.5 rounded text-[11px] bg-uch-cyan/20 text-uch-cyan font-semibold border border-uch-cyan/30">Campus Los Olivos</span>
+            <div class="hasp-cart-footer" x-show="items.length > 0" x-cloak>
+                <div class="hasp-cart-total-row">
+                    <span class="hasp-cart-total-label">Total a pagar</span>
+                    <span class="hasp-cart-total-val" x-text="'S/ ' + total().toFixed(2)"></span>
                 </div>
-                <p class="text-white/70 text-xs flex items-center justify-center md:justify-start gap-1.5 mt-1">
-                    <x-icon name="schedule" class="w-4 h-4 text-uch-amber" />
-                    Horario de atención: Lun - Sáb: 7:30 a.m. - 6:00 p.m. • Pabellón A
-                </p>
+                <button type="button" class="hasp-btn-checkout" @click="irAPagar()">💳 Ir al pago</button>
+                <p class="hasp-cart-note">Pago en efectivo, tarjeta o Yape/Plin</p>
             </div>
-            <div class="text-white/60 text-xs text-center md:text-right">
-                <p>© {{ date('Y') }} Universidad de Ciencias y Humanidades (UCH). Todos los derechos reservados.</p>
-                <p class="text-[11px] text-white/40 mt-0.5">Comedor Universitario • Servicio Estudiantil</p>
-            </div>
-        </div>
-    </footer>
+        </aside>
+    </div>
 
     <script>
         function catalogoUCH() {
@@ -501,7 +290,6 @@
                 menus: [],
                 menuHero: null,
                 heroTarjetas: [],
-                indiceHero: 0,
                 filtroAbierto: null,
                 categoriaActiva: 'Todos',
                 precioFiltro: 'todos',
@@ -513,9 +301,12 @@
                 feedbackId: null,
                 feedbackMensaje: '',
                 temporizadorFeedback: null,
-                modalMenuAbierto: false,
-                menuSeleccion: null,
-                seleccionMenu: { entrada: null, fondo: null, refresco: null },
+                sel: {},
+                pasos: [
+                    { tiempo: 'entrada', titulo: 'Elige tu entrada' },
+                    { tiempo: 'fondo', titulo: 'Elige tu fondo' },
+                    { tiempo: 'refresco', titulo: 'Elige tu refresco' },
+                ],
 
                 get etiquetaPrecio() {
                     return {
@@ -645,43 +436,75 @@
                     });
                 },
 
-                get fondoSeleccionado() {
-                    if (!this.menuSeleccion || !this.seleccionMenu.fondo) {
-                        return null;
-                    }
-
-                    return this.menuSeleccion.opciones.fondo.find((opcion) => opcion.id === this.seleccionMenu.fondo) || null;
+                tema(tipo) {
+                    return {
+                        universitario: { clase: 'univ', badge: 'universitario', icono: '🎓', nombre: 'Universitario' },
+                        ejecutivo: { clase: 'ejec', badge: 'ejecutivo', icono: '👔', nombre: 'Ejecutivo' },
+                        dieta: { clase: 'light', badge: 'light', icono: '🥦', nombre: 'Light' },
+                    }[tipo] || { clase: 'univ', badge: 'universitario', icono: '🍽️', nombre: 'Menú' };
                 },
 
-                get precioMenu() {
-                    if (!this.menuSeleccion) {
-                        return 0;
-                    }
-
-                    if (!this.menuSeleccion.esPrecioVariable) {
-                        return this.menuSeleccion.precioBase;
-                    }
-
-                    return this.fondoSeleccionado?.precio ?? this.menuSeleccion.precioBase;
+                get totalItems() {
+                    return this.items.reduce((suma, item) => suma + (Number(item.cantidad) || 0), 0);
                 },
 
-                get menuListoParaAgregar() {
-                    if (!this.menuSeleccion) {
-                        return false;
+                opcionDisponible(opcion) {
+                    return opcion.stock === null || opcion.stock > 0;
+                },
+
+                inicializarSeleccion(menu) {
+                    const primero = (opciones) => {
+                        const opcion = opciones.find((item) => this.opcionDisponible(item));
+                        return opcion ? opcion.id : null;
+                    };
+
+                    this.sel[menu.id] = {
+                        entrada: primero(menu.opciones.entrada),
+                        fondo: primero(menu.opciones.fondo),
+                        refresco: primero(menu.opciones.refresco),
+                    };
+                },
+
+                elegir(menu, tiempo, opcion) {
+                    if (!this.opcionDisponible(opcion)) {
+                        return;
                     }
 
-                    const tiempos = ['entrada', 'fondo', 'refresco'];
+                    this.sel[menu.id][tiempo] = opcion.id;
+                },
 
-                    return tiempos.every((tiempo) => {
-                        const id = this.seleccionMenu[tiempo];
-                        if (!id) {
-                            return false;
-                        }
+                opcionElegida(menu, tiempo) {
+                    const id = this.sel[menu.id]?.[tiempo];
 
-                        const opcion = this.menuSeleccion.opciones[tiempo].find((item) => item.id === id);
+                    return menu.opciones[tiempo].find((item) => item.id === id) || null;
+                },
 
-                        return opcion && (opcion.stock === null || opcion.stock > 0);
+                precioMenu(menu) {
+                    if (!menu.esPrecioVariable) {
+                        return menu.precioBase;
+                    }
+
+                    return this.opcionElegida(menu, 'fondo')?.precio ?? menu.precioBase;
+                },
+
+                menuListo(menu) {
+                    return ['entrada', 'fondo', 'refresco'].every((tiempo) => {
+                        const opcion = this.opcionElegida(menu, tiempo);
+
+                        return opcion && this.opcionDisponible(opcion);
                     });
+                },
+
+                detalleOpcion(menu, tiempo, opcion) {
+                    if (!this.opcionDisponible(opcion)) {
+                        return 'Agotado';
+                    }
+
+                    if (tiempo === 'fondo' && menu.esPrecioVariable && opcion.precio !== null) {
+                        return 'S/ ' + opcion.precio.toFixed(2);
+                    }
+
+                    return opcion.stock !== null && opcion.stock <= 5 ? 'Quedan ' + opcion.stock : '';
                 },
 
                 init() {
@@ -690,6 +513,7 @@
                     this.menus = window.menusMenu || [];
                     this.menuHero = window.menuHero || null;
                     this.heroTarjetas = window.heroTarjetas || [];
+                    this.menus.forEach((menu) => this.inicializarSeleccion(menu));
                     this.items = this.leerCarrito();
                     window.busquedaMenu = this.busqueda;
 
@@ -714,39 +538,25 @@
                     this.ordenFiltro = 'popular';
                 },
 
-                cambiarHero(paso) {
-                    if (this.heroTarjetas.length === 0) {
-                        return;
-                    }
-
-                    this.indiceHero = (this.indiceHero + paso + this.heroTarjetas.length) % this.heroTarjetas.length;
-                },
-
-                colorMenu(tipo) {
-                    return {
-                        universitario: '#0066B3',
-                        ejecutivo: '#F59E0B',
-                        dieta: '#00B4A6',
-                    }[tipo] || '#1B3668';
-                },
-
                 racionesMenu(menu) {
                     const opciones = menu.opciones.fondo || [];
                     if (opciones.length === 0) {
                         return 'Sin raciones';
                     }
 
-                    const cantidades = opciones
-                        .map((opcion) => opcion.stock)
-                        .filter((stock) => stock !== null);
-
-                    if (cantidades.length === 0) {
+                    if (opciones.some((opcion) => opcion.stock === null)) {
                         return 'Sin límite';
                     }
 
-                    const minimo = Math.min(...cantidades);
+                    const disponibles = opciones
+                        .map((opcion) => opcion.stock)
+                        .filter((stock) => stock > 0);
 
-                    return minimo > 0 ? minimo + ' raciones disponibles' : 'Agotado';
+                    if (disponibles.length === 0) {
+                        return 'Agotado';
+                    }
+
+                    return Math.max(...disponibles) + ' raciones disponibles';
                 },
 
                 leerCarrito() {
@@ -801,6 +611,7 @@
                             precio: producto.precio,
                             cantidad: 1,
                             stock: producto.stock,
+                            imagen: producto.imagen || '',
                             detalle: '',
                         });
                     }
@@ -808,41 +619,20 @@
                     this.mostrarFeedback(producto.id, '✓ Agregado');
                 },
 
-                abrirMenu(menu) {
-                    if (menu.agotado) {
+                agregarMenu(menu) {
+                    if (!this.menuListo(menu)) {
                         return;
                     }
 
-                    const primeroDisponible = (opciones) => {
-                        const opcion = opciones.find((item) => item.stock === null || item.stock > 0);
-                        return opcion ? opcion.id : null;
-                    };
-
-                    this.menuSeleccion = menu;
-                    this.seleccionMenu = {
-                        entrada: primeroDisponible(menu.opciones.entrada),
-                        fondo: primeroDisponible(menu.opciones.fondo),
-                        refresco: primeroDisponible(menu.opciones.refresco),
-                    };
-                    this.modalMenuAbierto = true;
-                },
-
-                agregarMenu() {
-                    if (!this.menuListoParaAgregar) {
-                        return;
-                    }
-
-                    const menu = this.menuSeleccion;
-                    const entrada = menu.opciones.entrada.find((item) => item.id === this.seleccionMenu.entrada);
-                    const fondo = this.fondoSeleccionado;
-                    const refresco = menu.opciones.refresco.find((item) => item.id === this.seleccionMenu.refresco);
+                    const entrada = this.opcionElegida(menu, 'entrada');
+                    const fondo = this.opcionElegida(menu, 'fondo');
+                    const refresco = this.opcionElegida(menu, 'refresco');
                     const id = `menu-${menu.id}-${entrada.id}-${fondo.id}-${refresco.id}`;
                     const existente = this.items.find((item) => item.id === id);
                     const stock = fondo.stock;
 
                     if (existente && stock !== null && existente.cantidad >= stock) {
-                        this.modalMenuAbierto = false;
-                        this.mostrarFeedback(id, 'Sin stock');
+                        this.mostrarFeedback('m' + menu.id, 'Sin stock');
                         return;
                     }
 
@@ -857,9 +647,10 @@
                             menu_id: menu.id,
                             nombre: menu.titulo,
                             detalle,
-                            precio: this.precioMenu,
+                            precio: this.precioMenu(menu),
                             cantidad: 1,
                             stock,
+                            imagen: menu.imagen || '',
                             opciones: {
                                 entrada: entrada.id,
                                 fondo: fondo.id,
@@ -868,8 +659,7 @@
                         });
                     }
 
-                    this.modalMenuAbierto = false;
-                    this.mostrarFeedback(id, '✓ Menú agregado');
+                    this.mostrarFeedback('m' + menu.id, '✓ Menú agregado');
                 },
 
                 cambiarCantidad(index, delta) {
