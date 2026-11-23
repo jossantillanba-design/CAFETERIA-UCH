@@ -18,12 +18,12 @@ class AdminSearchController extends Controller
             return redirect('/admin/dashboard');
         }
 
-        if (auth()->user()->rol === 'empleado') {
-            return redirect('/admin/pedidos?buscar='.urlencode($termino));
-        }
-
         if (ctype_digit($termino) && Pedido::whereKey((int) $termino)->exists()) {
-            return redirect('/admin/pedidos?buscar='.urlencode($termino));
+            $pedido = Pedido::findOrFail((int) $termino);
+
+            return redirect(in_array($pedido->estado, ['entregado', 'cancelado'], true)
+                ? '/admin/historial-pedidos?buscar='.urlencode($termino)
+                : '/admin/pedidos?buscar='.urlencode($termino));
         }
 
         $coincideProducto = Producto::where('sku', $termino)

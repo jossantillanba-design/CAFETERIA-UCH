@@ -27,9 +27,9 @@ class GoogleController extends Controller
             $empleadoEmails = array_map('trim', explode(',', env('EMPLEADO_EMAILS', '')));
 
             $rolAsignado = match (true) {
-               in_array($googleUser->getEmail(), $adminEmails) => 'administrador',
-               in_array($googleUser->getEmail(), $empleadoEmails) => 'empleado',
-               default => 'cliente',
+                in_array($googleUser->getEmail(), $adminEmails) => 'administrador',
+                in_array($googleUser->getEmail(), $empleadoEmails) => 'empleado',
+                default => 'cliente',
             };
             $user = User::create([
                 'name' => $googleUser->getName(),
@@ -46,7 +46,7 @@ class GoogleController extends Controller
 
         return match ($user->rol) {
             'administrador' => redirect('/admin/dashboard'),
-            'empleado' => redirect('/admin/pedidos'),
+            'empleado' => redirect('/empleado/tomar-orden'),
             default => redirect('/menu'),
         };
     }

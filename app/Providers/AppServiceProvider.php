@@ -34,11 +34,17 @@ class AppServiceProvider extends ServiceProvider
                 : 0);
         });
 
+        View::composer('components.empleado-nav', function ($view): void {
+            $view->with('pedidosPendientes', auth()->check() && auth()->user()->rol === 'empleado'
+                ? Pedido::where('estado', 'pendiente')->count()
+                : 0);
+        });
+
         View::composer('components.admin-topbar', function ($view): void {
             $alertas = collect();
             $criticas = 0;
 
-            if (auth()->check() && in_array(auth()->user()->rol, ['administrador', 'empleado'], true)) {
+            if (auth()->check() && auth()->user()->rol === 'administrador') {
                 $productos = Producto::stockBajo()->with('categoria')->orderBy('stock_actual')->get();
                 $raciones = MenuDiaOpcion::stockBajo()
                     ->with(['componente', 'menu'])

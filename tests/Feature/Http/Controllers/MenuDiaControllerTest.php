@@ -115,4 +115,18 @@ class MenuDiaControllerTest extends TestCase
 
         $this->assertFalse($menu->fresh()->activo);
     }
+
+    public function test_menu_page_only_assembles_components_and_links_to_component_catalog(): void
+    {
+        MenuDia::factory()->create();
+
+        $this->actingAs(User::factory()->administrador()->create())
+            ->get('/admin/menus')
+            ->assertOk()
+            ->assertSee('Gestionar componentes')
+            ->assertSee('/admin/componentes', false)
+            ->assertDontSee('Añadir al banco de opciones')
+            ->assertDontSee('/admin/menus/componentes', false)
+            ->assertDontSee('name="nombre"', false);
+    }
 }

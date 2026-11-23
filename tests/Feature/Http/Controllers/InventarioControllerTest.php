@@ -48,7 +48,8 @@ class InventarioControllerTest extends TestCase
                     && $fila['stock'] === 3))
             ->assertViewHas('alertasStock', 2)
             ->assertViewHas('racionesDisponibles', 3)
-            ->assertViewHas('movimientos')
+            ->assertViewMissing('movimientos')
+            ->assertViewHas('totalMovimientos', 0)
             ->assertViewHas('motivos', fn ($motivos) => in_array('Reposición', $motivos, true));
     }
 

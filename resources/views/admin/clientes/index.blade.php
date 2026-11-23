@@ -22,6 +22,29 @@
             </div>
         </header>
 
+        <form method="GET" action="/admin/clientes" class="flex flex-wrap items-end gap-space-md rounded-card border border-uch-border bg-white p-4 shadow-sm">
+            <div class="min-w-[220px] flex-1 space-y-1">
+                <label for="buscar-clientes" class="block text-label-md text-uch-muted">Búsqueda rápida</label>
+                <div class="relative flex items-center">
+                    <span class="material-symbols-outlined pointer-events-none absolute left-3.5 text-[20px] text-uch-muted">search</span>
+                    <input id="buscar-clientes" name="buscar" type="search" value="{{ $buscar }}"
+                           placeholder="Buscar por nombre o correo..."
+                           class="w-full rounded-lg bg-uch-bg py-2.5 pl-10 pr-4 text-body-md text-uch-text placeholder:text-uch-muted focus:bg-uch-surface focus:ring-2 focus:ring-uch-blue/30">
+                </div>
+            </div>
+            <button type="submit"
+                    class="inline-flex items-center gap-1 rounded-lg bg-uch-navy px-4 py-2.5 text-label-lg text-white transition-colors hover:bg-uch-blue">
+                <span class="material-symbols-outlined text-[18px]">search</span>
+                Buscar
+            </button>
+            @if ($buscar !== '')
+                <a href="/admin/clientes" class="inline-flex items-center gap-1 rounded-lg border border-uch-border px-4 py-2.5 text-label-lg text-uch-muted transition-colors hover:text-uch-blue">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                    Limpiar
+                </a>
+            @endif
+        </form>
+
         <section class="overflow-hidden rounded-card border border-uch-border bg-white shadow-uch-card">
             <div class="overflow-x-auto">
                 <table class="w-full text-body-sm">

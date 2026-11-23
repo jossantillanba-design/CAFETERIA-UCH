@@ -11,7 +11,7 @@
             </div>
             <h1 class="font-rubik text-headline-lg-mobile tracking-tight text-uch-navy lg:text-headline-lg">Nueva categoría</h1>
             <p class="text-body-md text-uch-muted">
-                El slug se genera automáticamente desde el nombre. El color se reflejará en los filtros del menú digital.
+                El slug se genera desde el nombre y el color se usa en los filtros.
             </p>
         </header>
 

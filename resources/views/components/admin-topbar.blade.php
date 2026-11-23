@@ -1,5 +1,5 @@
 @auth
-    @if (in_array(auth()->user()->rol, ['administrador', 'empleado'], true))
+    @if (in_array(auth()->user()->rol, ['administrador'], true))
         <header class="no-print fixed left-[76px] right-0 top-0 z-40 flex h-16 items-center justify-between gap-4 border-b border-uch-border bg-uch-surface px-4 shadow-[0_1px_8px_rgba(0,0,0,0.04)] sm:px-6 lg:left-[248px]">
             <form method="GET" action="/admin/buscar" class="w-full max-w-md">
                 <div class="relative flex items-center">

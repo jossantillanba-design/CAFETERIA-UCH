@@ -1,19 +1,20 @@
 @auth
-    @if (in_array(auth()->user()->rol, ['administrador', 'empleado'], true))
+    @if (in_array(auth()->user()->rol, ['administrador'], true))
         @php
             $secciones = [
                 [
                     'titulo' => 'Resumen',
                     'enlaces' => [
                         ['ruta' => '/admin/dashboard', 'patron' => 'admin/dashboard*', 'etiqueta' => 'Inicio', 'icono' => 'dashboard', 'roles' => ['administrador']],
-                        ['ruta' => '/admin/pedidos', 'patron' => 'admin/pedidos*', 'etiqueta' => 'Pedidos en vivo', 'icono' => 'shopping_bag', 'roles' => ['administrador', 'empleado'], 'badge' => true],
+                        ['ruta' => '/admin/pedidos', 'patron' => 'admin/pedidos*', 'etiqueta' => 'Pedidos en vivo', 'icono' => 'shopping_bag', 'roles' => ['administrador'], 'badge' => true],
+                        ['ruta' => '/admin/historial-pedidos', 'patron' => 'admin/historial-pedidos*', 'etiqueta' => 'Historial de pedidos', 'icono' => 'history', 'roles' => ['administrador']],
                     ],
                 ],
                 [
                     'titulo' => 'Menús y catálogo',
                     'enlaces' => [
                         ['ruta' => '/admin/menus', 'patron' => 'admin/menus*', 'etiqueta' => 'Menús del día', 'icono' => 'restaurant', 'roles' => ['administrador']],
-                        ['ruta' => '/admin/menus#componentes', 'patron' => 'admin/menus*', 'etiqueta' => 'Componentes de menú', 'icono' => 'format_list_bulleted', 'roles' => ['administrador']],
+                        ['ruta' => '/admin/componentes', 'patron' => 'admin/componentes*', 'etiqueta' => 'Componentes del menú', 'icono' => 'format_list_bulleted', 'roles' => ['administrador']],
                         ['ruta' => '/admin/productos', 'patron' => 'admin/productos*', 'etiqueta' => 'Productos', 'icono' => 'local_cafe', 'roles' => ['administrador']],
                         ['ruta' => '/admin/categorias', 'patron' => 'admin/categorias*', 'etiqueta' => 'Categorías', 'icono' => 'label', 'roles' => ['administrador']],
                     ],
@@ -22,7 +23,7 @@
                     'titulo' => 'Control y operación',
                     'enlaces' => [
                         ['ruta' => '/admin/inventario', 'patron' => 'admin/inventario', 'etiqueta' => 'Inventario', 'icono' => 'inventory_2', 'roles' => ['administrador']],
-                        ['ruta' => '/admin/inventario#historial', 'patron' => 'admin/inventario*', 'etiqueta' => 'Historial de movimientos', 'icono' => 'history', 'roles' => ['administrador']],
+                        ['ruta' => '/admin/movimientos', 'patron' => 'admin/movimientos*', 'etiqueta' => 'Historial de movimientos', 'icono' => 'history', 'roles' => ['administrador']],
                         ['ruta' => '/admin/clientes', 'patron' => 'admin/clientes*', 'etiqueta' => 'Clientes', 'icono' => 'group', 'roles' => ['administrador']],
                     ],
                 ],

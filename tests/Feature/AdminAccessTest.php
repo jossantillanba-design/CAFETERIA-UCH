@@ -22,12 +22,20 @@ class AdminAccessTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_employee_can_open_orders_but_not_admin_dashboard(): void
+    public function test_employee_is_forbidden_from_every_admin_order_module(): void
     {
         $empleado = User::factory()->empleado()->create();
 
-        $this->actingAs($empleado)->get('/admin/pedidos')->assertOk();
         $this->actingAs($empleado)->get('/admin/dashboard')->assertForbidden();
+        $this->actingAs($empleado)->get('/admin/pedidos')->assertForbidden();
+        $this->actingAs($empleado)->get('/admin/historial-pedidos')->assertForbidden();
+    }
+
+    public function test_client_cannot_open_order_history(): void
+    {
+        $this->actingAs(User::factory()->cliente()->create())
+            ->get('/admin/historial-pedidos')
+            ->assertForbidden();
     }
 
     public function test_admin_can_open_dashboard_and_orders(): void
@@ -36,6 +44,7 @@ class AdminAccessTest extends TestCase
 
         $this->actingAs($admin)->get('/admin/dashboard')->assertOk();
         $this->actingAs($admin)->get('/admin/pedidos')->assertOk();
+        $this->actingAs($admin)->get('/admin/historial-pedidos')->assertOk();
         $this->actingAs($admin)->get('/admin/clientes')->assertOk();
     }
 
@@ -48,20 +57,28 @@ class AdminAccessTest extends TestCase
             ->assertSee('Comedor Admin')
             ->assertSee('Inicio')
             ->assertSee('Pedidos en vivo')
-            ->assertSee('Componentes de menú')
+            ->assertSee('Historial de pedidos')
+            ->assertSee('href="/admin/historial-pedidos"', false)
+            ->assertSee('Componentes del menú')
             ->assertSee('Historial de movimientos')
+            ->assertSee('href="/admin/movimientos"', false)
             ->assertSee('Clientes')
             ->assertDontSee('href="/menu"', false)
             ->assertDontSee('href="/checkout"', false)
             ->assertDontSee('Mis pedidos');
     }
 
-    public function test_employee_orders_page_uses_shared_sidebar_without_customer_navigation(): void
+    public function test_employee_uses_the_operation_sidebar_without_admin_or_customer_navigation(): void
     {
-        $this->actingAs(User::factory()->empleado()->create())->get('/admin/pedidos')
+        $this->actingAs(User::factory()->empleado()->create())->get('/empleado/pedidos')
             ->assertOk()
-            ->assertSee('Comedor Admin')
+            ->assertSee('Comedor Operación')
+            ->assertSee('Tomar orden')
             ->assertSee('Pedidos en vivo')
+            ->assertSee('Historial de pedidos')
+            ->assertSee('href="'.route('empleado.historial.index').'"', false)
+            ->assertDontSee('Comedor Admin')
+            ->assertDontSee('href="/admin/pedidos"', false)
             ->assertDontSee('href="/menu"', false)
             ->assertDontSee('href="/checkout"', false);
     }
@@ -70,8 +87,10 @@ class AdminAccessTest extends TestCase
     {
         $this->actingAs(User::factory()->cliente()->create())->get('/menu')
             ->assertOk()
-            ->assertSee('href="/menu"', false)
-            ->assertSee('Mis pedidos');
+            ->assertSee('href="/mis-pedidos"', false)
+            ->assertSee('Mis pedidos')
+            ->assertSee('Buscar en el menú')
+            ->assertDontSee('href="/menu"', false);
     }
 
     public function test_customer_can_open_menu_checkout_and_order_history(): void

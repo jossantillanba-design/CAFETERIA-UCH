@@ -1,22 +1,6 @@
 <x-layouts.app>
-    <script>
-        window.productosMenu = @js($productosMenu);
-        window.categoriasMenu = @js($categoriasMenu);
-        window.menusMenu = @js($menusMenu);
-        window.menuHero = @js($menuHero);
-    </script>
-
     @php
         $hoy = now();
-        $nombresDias = [0 => 'Domingo', 1 => 'Lunes', 2 => 'Martes', 3 => 'Miércoles', 4 => 'Jueves', 5 => 'Viernes', 6 => 'Sábado'];
-        $inicioSemana = $hoy->copy()->startOfWeek(1);
-        $diasSemana = collect(range(0, 6))->map(fn (int $indice): array => [
-            'clave' => $inicioSemana->copy()->addDays($indice)->toDateString(),
-            'etiqueta' => $nombresDias[$inicioSemana->copy()->addDays($indice)->dayOfWeek],
-            'numero' => $inicioSemana->copy()->addDays($indice)->day,
-            'hoy' => $inicioSemana->copy()->addDays($indice)->isToday(),
-        ]);
-
         $heroTarjetas = collect($productosMenu)
             ->filter(fn (array $producto): bool => ! empty($producto['imagen']))
             ->take(3)
@@ -41,9 +25,75 @@
         $turno = $horaActual < 11 ? 'Desayuno' : ($horaActual < 15 ? 'Almuerzo' : 'Tarde');
     @endphp
 
+    <script>
+        window.productosMenu = @js($productosMenu);
+        window.categoriasMenu = @js($categoriasMenu);
+        window.menusMenu = @js($menusMenu);
+        window.menuHero = @js($menuHero);
+        window.heroTarjetas = @js($heroTarjetas);
+    </script>
+
     <div x-data="catalogoUCH()" x-init="init()" x-cloak class="w-full bg-uch-bg">
-        <!-- 1. Estado operativo -->
-        <section class="w-full bg-uch-surface shadow-uch-card">
+        <!-- Hero institucional -->
+        <section class="relative w-full h-[360px] sm:h-[400px] lg:h-[420px] overflow-hidden bg-uch-navy hero-principal select-none">
+            <template x-for="(tarjeta, indice) in heroTarjetas" :key="tarjeta.nombre + '-' + indice">
+                <img x-show="indiceHero === indice"
+                     x-transition.opacity
+                     :src="tarjeta.imagen"
+                     :alt="'Plato UCH: ' + tarjeta.nombre"
+                     class="absolute inset-0 w-full h-full object-cover">
+            </template>
+            <div class="absolute inset-0 bg-gradient-to-r from-[#1B3668]/95 via-[#1B3668]/80 to-transparent"></div>
+
+            <div class="relative max-w-7xl mx-auto h-full px-6 lg:px-12 flex items-center z-10">
+                <div class="max-w-xl flex flex-col items-start gap-4">
+                    <span class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-uch-amber text-uch-navy font-bold text-xs tracking-wider shadow-sm">
+                        <x-icon name="school" class="w-4 h-4" />
+                        CAMPUS LOS OLIVOS • #PENSAMOSDIFERENTE
+                    </span>
+                    <h1 class="font-rubik text-headline-lg-mobile sm:text-[38px] lg:text-headline-lg font-extrabold leading-tight tracking-tight text-white">
+                        Tu almuerzo UCH, listo sin hacer cola
+                    </h1>
+                    <p class="font-open text-body-md text-white/90 leading-relaxed">
+                        Arma tu menú de 3 tiempos o pide un snack entre clases y recógelo en barra.
+                    </p>
+                    <div class="pt-2 flex flex-wrap items-center gap-3">
+                        <a href="#menus-del-dia"
+                           class="inline-flex items-center gap-2 bg-uch-coral hover:bg-uch-coral-dark text-white active:scale-95 transition-all font-rubik font-bold px-6 py-3 rounded-xl shadow-lg text-sm">
+                            <span>Armar menú de hoy</span>
+                            <span class="material-symbols-outlined text-[18px]">arrow_downward</span>
+                        </a>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white/90 text-xs font-medium backdrop-blur-sm">
+                            <span class="text-uch-amber text-sm leading-none">★</span>
+                            Incluye crema de ají y refresco
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <template x-if="heroTarjetas.length > 1">
+                <div>
+                    <button type="button" @click="cambiarHero(-1)" aria-label="Diapositiva anterior"
+                            class="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 hover:bg-white text-uch-navy shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-20">
+                        <span class="material-symbols-outlined text-[24px]">chevron_left</span>
+                    </button>
+                    <button type="button" @click="cambiarHero(1)" aria-label="Siguiente diapositiva"
+                            class="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 hover:bg-white text-uch-navy shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-20">
+                        <span class="material-symbols-outlined text-[24px]">chevron_right</span>
+                    </button>
+                    <div class="absolute bottom-5 right-6 lg:right-12 flex items-center gap-2 z-20">
+                        <template x-for="(tarjeta, indice) in heroTarjetas" :key="'punto-' + indice">
+                            <button type="button" @click="indiceHero = indice" :aria-label="'Ver ' + tarjeta.nombre"
+                                    :class="indiceHero === indice ? 'w-6 bg-uch-coral' : 'w-2 bg-white/60 hover:bg-white'"
+                                    class="h-2 rounded-full transition-all shadow-sm"></button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </section>
+
+        <!-- Estado operativo -->
+        <section class="w-full bg-white border-b border-uch-border shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3 flex flex-wrap items-center justify-between gap-3 text-uch-text">
                 <div class="flex flex-wrap items-center gap-3 sm:gap-4 text-body-sm">
                     <div class="flex items-center gap-2">
@@ -64,103 +114,22 @@
                         <span>Recojo: <strong class="text-uch-text font-semibold">Barra Rápida - Pabellón A</strong></span>
                     </div>
                 </div>
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide bg-uch-teal/10 text-uch-teal">
-                    <span class="w-1.5 h-1.5 rounded-full bg-uch-teal"></span>
-                    Turno {{ $turno }} {{ $comedorAbierto ? 'activo' : '' }}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide {{ $comedorAbierto ? 'bg-uch-teal/10 text-uch-teal' : 'bg-uch-bg text-uch-muted' }}">
+                    <span class="w-1.5 h-1.5 rounded-full {{ $comedorAbierto ? 'bg-uch-teal' : 'bg-uch-muted' }}"></span>
+                    Turno {{ $turno }}
                 </span>
             </div>
         </section>
 
-        <!-- 2. Hero institucional -->
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 w-full">
-            <div class="relative overflow-hidden rounded-[24px] shadow-uch-card-hover text-white hero-principal">
-                <div class="absolute -right-20 -top-24 w-96 h-96 rounded-full bg-uch-cyan/20 blur-3xl pointer-events-none"></div>
-                <div class="absolute left-1/3 -bottom-24 w-80 h-80 rounded-full bg-uch-amber/15 blur-2xl pointer-events-none"></div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-12 items-center gap-8 p-6 sm:p-10 lg:p-12 relative z-10">
-                    <div class="lg:col-span-6 flex flex-col items-start gap-4">
-                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-uch-amber text-uch-navy font-bold text-xs tracking-wider shadow-sm">
-                            <x-icon name="school" class="w-4 h-4" />
-                            CAMPUS LOS OLIVOS • #PENSAMOSDIFERENTE
-                        </span>
-                        <h1 class="font-rubik text-headline-lg-mobile lg:text-headline-lg font-extrabold uppercase leading-tight tracking-tight">
-                            Descubre tu menú de hoy
-                        </h1>
-                        <div class="pt-2">
-                            <a href="#menu-semanal"
-                               class="inline-flex items-center bg-white text-uch-navy hover:bg-uch-bg active:scale-95 transition-all font-rubik font-bold px-6 py-3.5 rounded-xl shadow-md">
-                                Ver menús del día
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="lg:col-span-6 flex items-center justify-center lg:justify-end overflow-hidden py-4 sm:py-6">
-                        <div class="relative flex items-center gap-3 sm:gap-4 -rotate-2">
-                            @foreach ($heroTarjetas as $indice => $tarjeta)
-                                <div class="group relative {{ $indice === 1 ? 'w-32 sm:w-40 md:w-44 -mt-4' : 'w-28 sm:w-36 md:w-40' }} h-64 sm:h-72 rounded-2xl overflow-hidden shadow-uch-card-hover transition-transform duration-300 hover:-translate-y-2 -skew-x-[10deg] bg-uch-navy">
-                                    <img src="{{ $tarjeta['imagen'] }}"
-                                         alt="{{ $tarjeta['nombre'] }}"
-                                         class="w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-500">
-                                    @if ($tarjeta['destacada'])
-                                        <span class="absolute top-2 right-2 skew-x-[10deg] bg-uch-coral text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
-                                            Favorito
-                                        </span>
-                                    @endif
-                                    <div class="absolute inset-0 bg-gradient-to-t from-uch-navy/90 via-transparent to-transparent flex flex-col justify-end p-2.5 skew-x-[10deg]">
-                                        <span class="text-[11px] font-bold text-white uppercase truncate">{{ $tarjeta['nombre'] }}</span>
-                                        <span class="text-[10px] text-uch-cyan truncate">{{ $tarjeta['etiqueta'] }}</span>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 3. Menú semanal -->
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 w-full" id="menu-semanal">
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-                <h2 class="font-rubik text-headline-md text-uch-navy font-bold tracking-tight">Menú semanal</h2>
-                <div class="relative w-full md:w-80">
-                    <x-icon name="search" class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-uch-muted pointer-events-none" />
-                    <input type="search"
-                           x-model="busqueda"
-                           x-ref="buscar"
-                           placeholder="Buscar plato, café o sánguche..."
-                           aria-label="Buscar en el menú"
-                           class="w-full pl-10 pr-4 py-2.5 rounded-full bg-uch-surface text-uch-text font-open text-sm placeholder:text-uch-muted shadow-uch-card focus:outline-none focus:ring-2 focus:ring-uch-blue transition-all">
-                </div>
-            </div>
-
-            <div class="w-full overflow-x-auto no-scrollbar pb-2">
-                <div class="flex items-center gap-2 min-w-max">
-                    @foreach ($diasSemana as $dia)
-                        <button type="button"
-                                @click="diaActivo = '{{ $dia['clave'] }}'"
-                                :class="diaActivo === '{{ $dia['clave'] }}'
-                                    ? 'bg-uch-blue text-white shadow-md'
-                                    : 'bg-uch-surface text-uch-muted hover:bg-uch-bg shadow-sm'"
-                                class="px-4 py-2 rounded-full font-open font-semibold text-body-sm transition-colors flex items-center gap-2">
-                            @if ($dia['hoy'])
-                                <span class="relative flex h-2 w-2">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-uch-cyan opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-uch-cyan"></span>
-                                </span>
-                            @endif
-                            <span>{{ $dia['etiqueta'] }} {{ $dia['numero'] }}{{ $dia['hoy'] ? ' (HOY)' : '' }}</span>
-                        </button>
-                    @endforeach
-                </div>
-            </div>
-
-            <div class="mt-4 mb-8 bg-uch-blue/10 text-uch-blue px-4 py-2.5 rounded-[10px] flex items-center gap-2 font-open text-body-sm font-medium">
-                <x-icon name="star" class="w-4 h-4 text-uch-amber shrink-0" />
-                <span>Todos los menús incluyen cubiertos, crema de ají de la casa y refresco natural</span>
+        <!-- Menús del día -->
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 w-full" id="menus-del-dia">
+            <div class="mb-6">
+                <span class="text-uch-blue font-bold text-xs uppercase tracking-wider">OFERTA DE HOY</span>
+                <h2 class="font-rubik text-headline-md text-uch-navy font-bold tracking-tight">Menús armables de 3 tiempos</h2>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <template x-for="menu in menus" :key="menu.id">
+                <template x-for="menu in menusVisibles" :key="menu.id">
                     <article class="relative bg-uch-surface rounded-[18px] p-6 shadow-uch-card hover:shadow-uch-card-hover transition-all duration-300 flex flex-col justify-between overflow-hidden">
                         <div class="absolute top-0 inset-x-0 h-1" :style="{ backgroundColor: colorMenu(menu.tipo) }"></div>
                         <div>
@@ -209,22 +178,120 @@
                     </article>
                 </template>
             </div>
+
+            <div x-show="menusVisibles.length === 0" x-cloak class="py-8 text-center">
+                <p class="font-rubik text-headline-sm text-uch-navy" x-text="hayFiltrosActivos ? 'Sin menús con estos filtros' : 'Sin menús para tu búsqueda'"></p>
+            </div>
         </section>
 
-        <!-- 4. Combos y adicionales -->
+        <!-- Al paso y Combos -->
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-8 w-full">
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-                <h2 class="font-rubik text-headline-md text-uch-navy font-bold tracking-tight">Combos Break y Adicionales al Paso</h2>
-                <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-                    <template x-for="categoria in categorias" :key="categoria.slug">
-                        <button type="button"
-                                @click="categoriaActiva = categoria.nombre"
-                                :class="categoriaActiva === categoria.nombre
-                                    ? 'bg-uch-blue text-white shadow-sm'
-                                    : 'bg-uch-surface text-uch-muted hover:bg-uch-bg shadow-sm'"
-                                class="px-4 py-1.5 rounded-full font-open text-xs font-bold whitespace-nowrap transition-colors"
-                                x-text="categoria.nombre"></button>
-                    </template>
+                <div>
+                    <h2 class="font-rubik text-headline-md text-uch-navy font-bold tracking-tight">Al paso y Combos</h2>
+                    <p class="font-open text-body-sm text-uch-muted mt-0.5">Para acompañar tus clases o recargar energía al instante</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-end justify-between gap-4 mt-2 mb-6" @click.outside="filtroAbierto = null">
+                <div class="flex flex-col gap-1.5">
+                    <span class="text-[11px] font-bold tracking-wider text-uch-muted uppercase">FILTRAR POR</span>
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <div class="relative">
+                            <button type="button" @click="filtroAbierto = filtroAbierto === 'categoria' ? null : 'categoria'"
+                                    :class="categoriaActiva !== 'Todos' ? 'border-uch-blue text-uch-blue' : 'border-uch-border text-uch-navy'"
+                                    class="bg-uch-surface border shadow-sm rounded-full px-4 py-2 text-sm font-open font-semibold flex items-center gap-2 hover:border-uch-blue transition-colors">
+                                <span class="material-symbols-outlined text-[18px] text-uch-blue">grid_view</span>
+                                <span x-text="categoriaActiva === 'Todos' ? 'Categoría' : categoriaActiva"></span>
+                                <span class="material-symbols-outlined text-[18px] text-uch-muted">keyboard_arrow_down</span>
+                            </button>
+                            <div x-show="filtroAbierto === 'categoria'" x-cloak class="absolute left-0 top-full mt-2 w-52 bg-uch-surface rounded-xl shadow-uch-card-hover border border-uch-border p-2 z-30">
+                                <template x-for="categoria in categorias" :key="categoria.slug">
+                                    <button type="button" @click="categoriaActiva = categoria.nombre; filtroAbierto = null"
+                                            :class="categoriaActiva === categoria.nombre ? 'bg-uch-blue/10 text-uch-blue' : 'text-uch-text hover:bg-uch-bg'"
+                                            class="w-full text-left px-3 py-2 rounded-lg text-sm font-open font-medium transition-colors"
+                                            x-text="categoria.nombre"></button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="relative">
+                            <button type="button" @click="filtroAbierto = filtroAbierto === 'precio' ? null : 'precio'"
+                                    :class="precioFiltro !== 'todos' ? 'border-uch-blue text-uch-blue' : 'border-uch-border text-uch-navy'"
+                                    class="bg-uch-surface border shadow-sm rounded-full px-4 py-2 text-sm font-open font-semibold flex items-center gap-2 hover:border-uch-blue transition-colors">
+                                <span x-text="precioFiltro === 'todos' ? 'Precio' : etiquetaPrecio"></span>
+                                <span class="material-symbols-outlined text-[18px] text-uch-muted">keyboard_arrow_down</span>
+                            </button>
+                            <div x-show="filtroAbierto === 'precio'" x-cloak class="absolute left-0 top-full mt-2 w-52 bg-uch-surface rounded-xl shadow-uch-card-hover border border-uch-border p-2 z-30">
+                                <template x-for="opcion in [
+                                    { valor: 'todos', etiqueta: 'Todos los precios' },
+                                    { valor: 'hasta5', etiqueta: 'Hasta S/ 5.00' },
+                                    { valor: '5a10', etiqueta: 'S/ 5.00 - S/ 10.00' },
+                                    { valor: 'desde10', etiqueta: 'Desde S/ 10.00' },
+                                ]" :key="opcion.valor">
+                                    <button type="button" @click="precioFiltro = opcion.valor; filtroAbierto = null"
+                                            :class="precioFiltro === opcion.valor ? 'bg-uch-blue/10 text-uch-blue' : 'text-uch-text hover:bg-uch-bg'"
+                                            class="w-full text-left px-3 py-2 rounded-lg text-sm font-open font-medium transition-colors"
+                                            x-text="opcion.etiqueta"></button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="relative">
+                            <button type="button" @click="filtroAbierto = filtroAbierto === 'etiqueta' ? null : 'etiqueta'"
+                                    :class="etiquetaFiltro !== 'todas' ? 'border-uch-blue text-uch-blue' : 'border-uch-border text-uch-navy'"
+                                    class="bg-uch-surface border shadow-sm rounded-full px-4 py-2 text-sm font-open font-semibold flex items-center gap-2 hover:border-uch-blue transition-colors">
+                                <span x-text="etiquetaFiltro === 'todas' ? 'Etiqueta' : etiquetaEtiqueta"></span>
+                                <span class="material-symbols-outlined text-[18px] text-uch-muted">keyboard_arrow_down</span>
+                            </button>
+                            <div x-show="filtroAbierto === 'etiqueta'" x-cloak class="absolute left-0 top-full mt-2 w-52 bg-uch-surface rounded-xl shadow-uch-card-hover border border-uch-border p-2 z-30">
+                                <template x-for="opcion in [
+                                    { valor: 'todas', etiqueta: 'Todas' },
+                                    { valor: 'popular', etiqueta: 'Popular' },
+                                    { valor: 'rapido', etiqueta: 'Rápido' },
+                                    { valor: 'disponible', etiqueta: 'Disponible' },
+                                    { valor: 'agotado', etiqueta: 'Agotado' },
+                                ]" :key="opcion.valor">
+                                    <button type="button" @click="etiquetaFiltro = opcion.valor; filtroAbierto = null"
+                                            :class="etiquetaFiltro === opcion.valor ? 'bg-uch-blue/10 text-uch-blue' : 'text-uch-text hover:bg-uch-bg'"
+                                            class="w-full text-left px-3 py-2 rounded-lg text-sm font-open font-medium transition-colors"
+                                            x-text="opcion.etiqueta"></button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <span class="text-xs text-uch-muted font-medium ml-2">
+                            Mostrando <span x-text="menusVisibles.length + filtrados.length"></span> opciones
+                        </span>
+                        <button type="button" x-show="hayFiltrosActivos" x-cloak @click="limpiarFiltros()"
+                                class="text-xs font-bold text-uch-blue hover:text-uch-navy transition-colors">
+                            Limpiar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <span class="text-[11px] font-bold tracking-wider text-uch-muted uppercase">ORDENAR POR</span>
+                    <div class="relative">
+                        <button type="button" @click="filtroAbierto = filtroAbierto === 'orden' ? null : 'orden'"
+                                class="w-[240px] bg-uch-surface border border-uch-border rounded-full px-5 py-2 text-sm text-uch-navy font-open font-semibold flex items-center justify-between shadow-sm hover:border-uch-blue transition-colors">
+                            <span x-text="etiquetaOrden"></span>
+                            <span class="material-symbols-outlined text-[18px] text-uch-muted">keyboard_arrow_down</span>
+                        </button>
+                        <div x-show="filtroAbierto === 'orden'" x-cloak class="absolute right-0 top-full mt-2 w-60 bg-uch-surface rounded-xl shadow-uch-card-hover border border-uch-border p-2 z-30">
+                            <template x-for="opcion in [
+                                { valor: 'popular', etiqueta: 'Más pedidos' },
+                                { valor: 'precio-asc', etiqueta: 'Precio: menor a mayor' },
+                                { valor: 'precio-desc', etiqueta: 'Precio: mayor a menor' },
+                                { valor: 'nombre', etiqueta: 'Nombre A-Z' },
+                            ]" :key="opcion.valor">
+                                <button type="button" @click="ordenFiltro = opcion.valor; filtroAbierto = null"
+                                        :class="ordenFiltro === opcion.valor ? 'bg-uch-blue/10 text-uch-blue' : 'text-uch-text hover:bg-uch-bg'"
+                                        class="w-full text-left px-3 py-2 rounded-lg text-sm font-open font-medium transition-colors"
+                                        x-text="opcion.etiqueta"></button>
+                            </template>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -433,9 +500,14 @@
                 categorias: [],
                 menus: [],
                 menuHero: null,
+                heroTarjetas: [],
+                indiceHero: 0,
+                filtroAbierto: null,
                 categoriaActiva: 'Todos',
-                diaActivo: '{{ $hoy->toDateString() }}',
-                busqueda: '',
+                precioFiltro: 'todos',
+                etiquetaFiltro: 'todas',
+                ordenFiltro: 'popular',
+                busqueda: window.busquedaMenu || new URLSearchParams(window.location.search).get('buscar') || '',
                 items: [],
                 abierto: false,
                 feedbackId: null,
@@ -445,17 +517,131 @@
                 menuSeleccion: null,
                 seleccionMenu: { entrada: null, fondo: null, refresco: null },
 
+                get etiquetaPrecio() {
+                    return {
+                        todos: 'Todos los precios',
+                        hasta5: 'Hasta S/ 5.00',
+                        '5a10': 'S/ 5.00 - S/ 10.00',
+                        desde10: 'Desde S/ 10.00',
+                    }[this.precioFiltro] || 'Precio';
+                },
+
+                get etiquetaEtiqueta() {
+                    return {
+                        todas: 'Todas',
+                        popular: 'Popular',
+                        rapido: 'Rápido',
+                        disponible: 'Disponible',
+                        agotado: 'Agotado',
+                    }[this.etiquetaFiltro] || 'Etiqueta';
+                },
+
+                get etiquetaOrden() {
+                    return {
+                        popular: 'Más pedidos',
+                        'precio-asc': 'Precio: menor a mayor',
+                        'precio-desc': 'Precio: mayor a menor',
+                        nombre: 'Nombre A-Z',
+                    }[this.ordenFiltro] || 'Más pedidos';
+                },
+
+                get hayFiltrosActivos() {
+                    return this.categoriaActiva !== 'Todos'
+                        || this.precioFiltro !== 'todos'
+                        || this.etiquetaFiltro !== 'todas';
+                },
+
                 get filtrados() {
                     const consulta = this.busqueda.trim().toLowerCase();
 
-                    return this.productos.filter((producto) => {
+                    const resultados = this.productos.filter((producto) => {
                         const coincideCategoria = this.categoriaActiva === 'Todos' || producto.categoria === this.categoriaActiva;
+                        const coincidePrecio = this.precioFiltro === 'todos'
+                            || (this.precioFiltro === 'hasta5' && producto.precio < 5)
+                            || (this.precioFiltro === '5a10' && producto.precio >= 5 && producto.precio <= 10)
+                            || (this.precioFiltro === 'desde10' && producto.precio > 10);
+                        const coincideEtiqueta = this.etiquetaFiltro === 'todas'
+                            || (this.etiquetaFiltro === 'popular' && producto.popular)
+                            || (this.etiquetaFiltro === 'rapido' && producto.rapido)
+                            || (this.etiquetaFiltro === 'disponible' && producto.disponible)
+                            || (this.etiquetaFiltro === 'agotado' && !producto.disponible);
                         const descripcion = producto.descripcion || '';
                         const coincideBusqueda = !consulta
                             || producto.nombre.toLowerCase().includes(consulta)
                             || descripcion.toLowerCase().includes(consulta);
 
-                        return coincideCategoria && coincideBusqueda;
+                        return coincideCategoria && coincidePrecio && coincideEtiqueta && coincideBusqueda;
+                    });
+
+                    return resultados.sort((a, b) => {
+                        if (this.ordenFiltro === 'precio-asc') {
+                            return a.precio - b.precio;
+                        }
+
+                        if (this.ordenFiltro === 'precio-desc') {
+                            return b.precio - a.precio;
+                        }
+
+                        if (this.ordenFiltro === 'nombre') {
+                            return a.nombre.localeCompare(b.nombre, 'es');
+                        }
+
+                        if (a.popular !== b.popular) {
+                            return Number(b.popular) - Number(a.popular);
+                        }
+
+                        return a.nombre.localeCompare(b.nombre, 'es');
+                    });
+                },
+
+                get menusVisibles() {
+                    const consulta = this.busqueda.trim().toLowerCase();
+
+                    const resultados = this.menus.filter((menu) => {
+                        const coincideCategoria = this.categoriaActiva === 'Todos';
+                        const precio = Number(menu.precioVisible) || 0;
+                        const coincidePrecio = this.precioFiltro === 'todos'
+                            || (this.precioFiltro === 'hasta5' && precio < 5)
+                            || (this.precioFiltro === '5a10' && precio >= 5 && precio <= 10)
+                            || (this.precioFiltro === 'desde10' && precio > 10);
+                        const coincideEtiqueta = this.etiquetaFiltro === 'todas'
+                            || (this.etiquetaFiltro === 'popular' && menu.destacado)
+                            || (this.etiquetaFiltro === 'disponible' && !menu.agotado)
+                            || (this.etiquetaFiltro === 'agotado' && menu.agotado);
+                        const textos = [
+                            menu.titulo || '',
+                            menu.etiqueta || '',
+                            ...Object.values(menu.opciones || {})
+                                .flat()
+                                .map((opcion) => opcion.nombre || ''),
+                        ];
+                        const coincideBusqueda = !consulta
+                            || textos.some((texto) => texto.toLowerCase().includes(consulta));
+
+                        return coincideCategoria && coincidePrecio && coincideEtiqueta && coincideBusqueda;
+                    });
+
+                    return resultados.sort((a, b) => {
+                        const precioA = Number(a.precioVisible) || 0;
+                        const precioB = Number(b.precioVisible) || 0;
+
+                        if (this.ordenFiltro === 'precio-asc') {
+                            return precioA - precioB;
+                        }
+
+                        if (this.ordenFiltro === 'precio-desc') {
+                            return precioB - precioA;
+                        }
+
+                        if (this.ordenFiltro === 'nombre') {
+                            return (a.titulo || '').localeCompare(b.titulo || '', 'es');
+                        }
+
+                        if (Boolean(a.destacado) !== Boolean(b.destacado)) {
+                            return Number(Boolean(b.destacado)) - Number(Boolean(a.destacado));
+                        }
+
+                        return (a.titulo || '').localeCompare(b.titulo || '', 'es');
                     });
                 },
 
@@ -503,7 +689,13 @@
                     this.categorias = window.categoriasMenu || [];
                     this.menus = window.menusMenu || [];
                     this.menuHero = window.menuHero || null;
+                    this.heroTarjetas = window.heroTarjetas || [];
                     this.items = this.leerCarrito();
+                    window.busquedaMenu = this.busqueda;
+
+                    window.addEventListener('buscar-menu', (evento) => {
+                        this.busqueda = evento.detail?.value || '';
+                    });
 
                     this.$watch('items', () => {
                         localStorage.setItem('carrito', JSON.stringify(this.items));
@@ -512,6 +704,22 @@
                     });
 
                     window.dispatchEvent(new CustomEvent('carrito-actualizado', { detail: this.items }));
+                },
+
+                limpiarFiltros() {
+                    this.filtroAbierto = null;
+                    this.categoriaActiva = 'Todos';
+                    this.precioFiltro = 'todos';
+                    this.etiquetaFiltro = 'todas';
+                    this.ordenFiltro = 'popular';
+                },
+
+                cambiarHero(paso) {
+                    if (this.heroTarjetas.length === 0) {
+                        return;
+                    }
+
+                    this.indiceHero = (this.indiceHero + paso + this.heroTarjetas.length) % this.heroTarjetas.length;
                 },
 
                 colorMenu(tipo) {

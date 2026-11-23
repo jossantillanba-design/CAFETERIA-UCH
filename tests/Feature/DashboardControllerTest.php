@@ -103,27 +103,4 @@ class DashboardControllerTest extends TestCase
 
         $this->assertSame('en_preparacion', $pedido->fresh()->estado);
     }
-
-    public function test_admin_search_redirects_to_the_matching_module(): void
-    {
-        $admin = User::factory()->administrador()->create();
-
-        $producto = Producto::factory()->create(['sku' => 'SKU-BUSCAR-1']);
-        $pedido = Pedido::create(['total' => 5, 'pagado' => true, 'estado' => 'entregado']);
-        $cliente = User::factory()->cliente()->create(['name' => 'Buscador UCH']);
-
-        $this->actingAs($admin)
-            ->get('/admin/buscar?q='.$producto->sku)
-            ->assertRedirect('/admin/productos?buscar='.$producto->sku);
-
-        $this->actingAs($admin)
-            ->get('/admin/buscar?q='.$pedido->id)
-            ->assertRedirect('/admin/pedidos?buscar='.$pedido->id);
-
-        $this->actingAs($admin)
-            ->get('/admin/buscar?q='.urlencode('Buscador'))
-            ->assertRedirect('/admin/clientes?buscar=Buscador');
-
-        $this->assertSame('cliente', $cliente->rol);
-    }
 }

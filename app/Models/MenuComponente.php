@@ -24,6 +24,11 @@ class MenuComponente extends Model
         return $this->hasMany(MenuDiaOpcion::class, 'componente_id');
     }
 
+    public function opcionesHabilitadas(): HasMany
+    {
+        return $this->hasMany(MenuDiaOpcion::class, 'componente_id')->where('habilitado', true);
+    }
+
     public function scopeDelTiempo(Builder $query, string $tiempo): Builder
     {
         return $query->where('tiempo', $tiempo)

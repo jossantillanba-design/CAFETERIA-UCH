@@ -98,9 +98,9 @@
 
             <p class="text-body-md text-uch-muted">
                 @if ($esEdicion)
-                    Actualiza la foto, precio y etiquetas del producto. El stock se gestiona desde Inventario.
+                    Foto, precio y etiquetas del producto.
                 @else
-                    Configura la foto, precio, stock inicial y etiquetas promocionales del producto en el catálogo UCH.
+                    Foto, precio, stock inicial y etiquetas del producto.
                 @endif
             </p>
         </div>
@@ -356,7 +356,7 @@
                                     </template>
                                     <input type="hidden" name="alergenos" :value="alergenos.join(', ')">
                                     <input id="prod-allergens" type="text" x-model="nuevoAlergeno" @keydown.enter.prevent="agregarAlergeno()"
-                                           placeholder="+ Añadir otro (ej. maní, soya)..."
+                                           placeholder="Añadir otro (ej. maní, soya)..."
                                            class="min-w-[150px] flex-1 bg-transparent px-2 py-1 text-body-sm text-uch-text focus:outline-none">
                                     <button type="button" @click="agregarAlergeno()"
                                             class="rounded-md bg-uch-blue/10 px-2.5 py-1 text-label-md font-semibold text-uch-blue transition-colors hover:bg-uch-blue/20">
@@ -386,15 +386,14 @@
                                     <span class="material-symbols-outlined text-[18px]">history</span>
                                 </div>
                                 <div class="flex flex-col">
-                                    <p class="text-label-md font-bold text-uch-navy">Nota de control de inventario</p>
+                                    <p class="text-label-md font-bold text-uch-navy">Control de inventario</p>
                                     <p class="text-body-sm text-uch-muted">
                                         @if ($esEdicion)
-                                            El stock se ajusta únicamente desde el módulo de inventario.
+                                            El stock se ajusta en Inventario.
                                         @else
-                                            El stock inicial registrará automáticamente una entrada trazable en el
+                                            El stock inicial queda registrado en el
                                         @endif
-                                        <a href="/admin/inventario" class="font-semibold text-uch-blue hover:underline">Historial de Movimientos</a>
-                                        con tu usuario actual.
+                                        <a href="/admin/movimientos" class="font-semibold text-uch-blue hover:underline">historial de movimientos</a>.
                                     </p>
                                 </div>
                             </div>
