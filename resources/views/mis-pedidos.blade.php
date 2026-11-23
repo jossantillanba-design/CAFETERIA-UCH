@@ -1,378 +1,365 @@
 <x-layouts.app>
     @php
         $estilosEstado = [
-            'pendiente' => ['etiqueta' => 'Pendiente', 'grupo' => 'curso', 'barra' => 'bg-uch-amber', 'badge' => 'bg-uch-amber/15 text-[#B45309]', 'paso' => 1, 'chip' => 'En barra'],
-            'en_preparacion' => ['etiqueta' => 'En preparación', 'grupo' => 'curso', 'barra' => 'bg-uch-amber', 'badge' => 'bg-uch-cyan/15 text-uch-blue', 'paso' => 2, 'chip' => 'En cocina'],
-            'listo' => ['etiqueta' => 'Listo', 'grupo' => 'curso', 'barra' => 'bg-uch-teal', 'badge' => 'bg-uch-teal/15 text-[#008779]', 'paso' => 3, 'chip' => 'Listo'],
-            'entregado' => ['etiqueta' => 'Entregado', 'grupo' => 'entregado', 'barra' => 'bg-uch-teal', 'badge' => 'bg-uch-teal/15 text-[#008779]', 'paso' => 4, 'chip' => 'Finalizado'],
-            'cancelado' => ['etiqueta' => 'Cancelado', 'grupo' => 'cancelado', 'barra' => 'bg-uch-coral', 'badge' => 'bg-uch-coral/15 text-uch-coral-dark', 'paso' => 0, 'chip' => 'Cancelado'],
+            'pendiente'      => ['etiqueta' => 'Pendiente',       'grupo' => 'curso',     'color' => '#B45309', 'bg' => '#FEF3C7', 'barra' => '#F59E0B', 'paso' => 1, 'chip' => 'En barra'],
+            'en_preparacion' => ['etiqueta' => 'En preparación',  'grupo' => 'curso',     'color' => '#1565C0', 'bg' => '#E3F2FD', 'barra' => '#F59E0B', 'paso' => 2, 'chip' => 'En cocina'],
+            'listo'          => ['etiqueta' => 'Listo',           'grupo' => 'curso',     'color' => '#2E7D32', 'bg' => '#E8F5E9', 'barra' => '#2E7D32', 'paso' => 3, 'chip' => 'Listo'],
+            'entregado'      => ['etiqueta' => 'Entregado',       'grupo' => 'entregado', 'color' => '#2E7D32', 'bg' => '#E8F5E9', 'barra' => '#2E7D32', 'paso' => 4, 'chip' => 'Finalizado'],
+            'cancelado'      => ['etiqueta' => 'Cancelado',       'grupo' => 'cancelado', 'color' => '#B91C1C', 'bg' => '#FEE2E2', 'barra' => '#EF4444', 'paso' => 0, 'chip' => 'Cancelado'],
         ];
 
         $pasos = [
-            ['nombre' => 'Recibido', 'icono' => 'check'],
-            ['nombre' => 'Preparando', 'icono' => 'skillet'],
-            ['nombre' => 'Listo p/ recoger', 'icono' => 'inventory_2'],
-            ['nombre' => 'Entregado', 'icono' => 'done_all'],
-        ];
-
-        $iconosProducto = [
-            'cafe-americano' => 'coffee',
-            'quinua' => 'local_cafe',
-            'pan-con-huevo-revueto' => 'egg',
-            'pan-con-huevo-revuelto' => 'egg',
-            'pan-con-pollo' => 'lunch_dining',
-            'pan-con-salchicha-huachana' => 'lunch_dining',
-            'pan-con-queso' => 'lunch_dining',
-            'brownie' => 'icecream',
+            ['nombre' => 'Recibido',       'icono' => '✓'],
+            ['nombre' => 'Preparando',     'icono' => '🍳'],
+            ['nombre' => 'Listo p/ recoger','icono' => '📦'],
+            ['nombre' => 'Entregado',      'icono' => '✔✔'],
         ];
 
         $conteo = [
-            'todos' => $pedidos->count(),
-            'curso' => $pedidos->whereIn('estado', ['pendiente', 'en_preparacion', 'listo'])->count(),
+            'todos'     => $pedidos->count(),
+            'curso'     => $pedidos->whereIn('estado', ['pendiente', 'en_preparacion', 'listo'])->count(),
             'entregado' => $pedidos->where('estado', 'entregado')->count(),
             'cancelado' => $pedidos->where('estado', 'cancelado')->count(),
         ];
 
         $ultimo = $pedidos->first();
-        $metodoUltimo = strtolower($ultimo->metodo_pago ?? '');
-        $iconoPagoUltimo = str_contains($metodoUltimo, 'yape') || str_contains($metodoUltimo, 'plin')
-            ? 'smartphone'
-            : (str_contains($metodoUltimo, 'tarjeta') ? 'credit_card' : 'payments');
     @endphp
 
-    <div class="w-full max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Confirmación del último pedido -->
-        @if (session('mensaje'))
-            <section class="bg-uch-surface rounded-card shadow-uch-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden mb-7">
-                <div class="absolute left-0 top-0 bottom-0 w-[5px] bg-uch-teal"></div>
+    <style>
+        .mp-wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.25rem 4rem; font-family: 'DM Sans', system-ui, sans-serif; }
+        /* Confirmación */
+        .mp-confirm { background:#fff; border:1px solid var(--hasp-border,#EBEBEB); border-radius:14px; padding:1.25rem 1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:2rem; border-left:4px solid var(--hasp-green,#2E7D32); box-shadow:0 1px 4px rgba(0,0,0,.06); }
+        .mp-confirm-icon { width:44px;height:44px;border-radius:50%;background:#E8F5E9;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0; }
+        .mp-confirm-title { font-size:1rem;font-weight:700;color:var(--hasp-text,#1C1C1C); }
+        .mp-confirm-sub { font-size:0.78rem;color:var(--hasp-muted,#6E6E6E);margin-top:0.15rem; }
+        .mp-confirm-code { color:var(--hasp-blue,#1565C0);font-weight:600; }
+        .mp-confirm-eta { display:inline-flex;align-items:center;gap:0.4rem;background:var(--hasp-bg,#F9F9F7);border:1px solid var(--hasp-border,#EBEBEB);border-radius:999px;padding:0.35rem 0.9rem;font-size:0.78rem;color:var(--hasp-text,#1C1C1C); }
 
-                <div class="flex items-center gap-4 pl-2">
-                    <div class="w-12 h-12 rounded-full bg-uch-teal/15 flex items-center justify-center shrink-0 text-uch-teal">
-                        <span class="material-symbols-outlined text-[28px] font-bold">check_circle</span>
-                    </div>
-                    <div class="flex flex-col">
-                        <h2 class="font-rubik text-title-dish sm:text-headline-sm text-uch-navy leading-snug">
-                            {{ session('mensaje') }}
-                        </h2>
-                        <p class="text-body-md text-uch-muted flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
+        /* Header */
+        .mp-header { display:flex;flex-direction:column;gap:1.25rem;margin-bottom:1.75rem; }
+        @media(min-width:700px){ .mp-header{flex-direction:row;align-items:flex-end;justify-content:space-between;} }
+        .mp-eyebrow { font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--hasp-brand,#C8511B);display:flex;align-items:center;gap:0.4rem;margin-bottom:0.3rem; }
+        .mp-eyebrow-dot { width:7px;height:7px;border-radius:50%;background:var(--hasp-brand,#C8511B);animation:hasp-blink 2s infinite; }
+        .mp-title { font-size:1.6rem;font-weight:700;letter-spacing:-0.02em;color:var(--hasp-text,#1C1C1C); }
+        .mp-sub { font-size:0.875rem;color:var(--hasp-muted,#6E6E6E);margin-top:0.3rem; }
+
+        /* Filter tabs */
+        .mp-tabs { display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap; }
+        .mp-tab { border:1px solid var(--hasp-border,#EBEBEB);background:#fff;border-radius:999px;padding:0.4rem 1rem;font-size:0.8rem;font-weight:500;cursor:pointer;color:var(--hasp-muted,#6E6E6E);font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:0.4rem; }
+        .mp-tab:hover { border-color:var(--hasp-brand,#C8511B);color:var(--hasp-brand,#C8511B); }
+        .mp-tab.mp-active { border-color:var(--hasp-brand,#C8511B);background:var(--hasp-brand-lt,#FDF0E8);color:var(--hasp-brand,#C8511B); }
+        .mp-tab-count { font-size:0.65rem;font-weight:700;padding:0.1rem 0.4rem;border-radius:999px;background:rgba(0,0,0,.07); }
+
+        /* Grid */
+        .mp-grid { display:grid;grid-template-columns:1fr;gap:1.25rem; }
+        @media(min-width:900px){ .mp-grid{grid-template-columns:1fr 1fr;} }
+
+        /* Card */
+        .mp-card { background:#fff;border:1px solid var(--hasp-border,#EBEBEB);border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;flex-direction:column; }
+        .mp-card-top-bar { height:4px;width:100%; }
+        .mp-card-body { padding:1.25rem;flex:1;display:flex;flex-direction:column;gap:1.1rem; }
+
+        /* Card header */
+        .mp-card-head { display:flex;align-items:flex-start;justify-content:space-between;gap:0.75rem; }
+        .mp-order-num { font-size:1rem;font-weight:700;color:var(--hasp-text,#1C1C1C);letter-spacing:-0.01em; }
+        .mp-order-chip { font-size:0.65rem;font-weight:600;padding:0.15rem 0.55rem;border-radius:999px;background:var(--hasp-bg,#F9F9F7);color:var(--hasp-muted,#6E6E6E);margin-left:0.4rem; }
+        .mp-order-date { font-size:0.72rem;color:var(--hasp-muted,#6E6E6E);margin-top:0.2rem; }
+        .mp-status-badge { display:inline-flex;align-items:center;gap:0.4rem;border-radius:999px;padding:0.3rem 0.8rem;font-size:0.72rem;font-weight:700;flex-shrink:0; }
+        .mp-status-dot { width:7px;height:7px;border-radius:50%;background:currentColor;animation:hasp-blink 2s infinite; }
+
+        /* Progress */
+        .mp-progress { background:var(--hasp-bg,#F9F9F7);border-radius:12px;padding:1rem; }
+        .mp-steps { display:grid;grid-template-columns:repeat(4,1fr);position:relative;gap:0; }
+        .mp-steps-line { position:absolute;top:14px;left:12.5%;right:12.5%;height:3px;background:var(--hasp-border,#EBEBEB);z-index:0; }
+        .mp-steps-fill { position:absolute;top:14px;left:12.5%;height:3px;background:var(--hasp-green,#2E7D32);z-index:1; }
+        .mp-step { display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;z-index:2; }
+        .mp-step-circle { width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;border:2px solid var(--hasp-border,#EBEBEB);background:#fff;color:var(--hasp-muted,#6E6E6E); }
+        .mp-step-circle.done { background:var(--hasp-green,#2E7D32);border-color:var(--hasp-green,#2E7D32);color:#fff; }
+        .mp-step-circle.active { background:var(--hasp-brand,#C8511B);border-color:var(--hasp-brand,#C8511B);color:#fff; }
+        .mp-step-label { font-size:0.6rem;font-weight:600;margin-top:0.4rem;color:var(--hasp-muted,#6E6E6E);line-height:1.2; }
+        .mp-step-label.active { color:var(--hasp-brand,#C8511B); }
+        .mp-step-label.done { color:var(--hasp-green,#2E7D32); }
+
+        /* Items */
+        .mp-items-label { font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--hasp-muted,#6E6E6E);margin-bottom:0.5rem; }
+        .mp-item { display:flex;align-items:flex-start;justify-content:space-between;gap:0.75rem;padding:0.6rem 0;border-bottom:1px solid var(--hasp-border,#EBEBEB); }
+        .mp-item:last-child { border-bottom:none; }
+        .mp-item-icon { width:36px;height:36px;border-radius:8px;background:var(--hasp-bg,#F9F9F7);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0; }
+        .mp-item-name { font-size:0.82rem;font-weight:600;color:var(--hasp-text,#1C1C1C); }
+        .mp-item-det { font-size:0.68rem;color:var(--hasp-muted,#6E6E6E);margin-top:0.1rem; }
+        .mp-item-price { font-size:0.85rem;font-weight:700;flex-shrink:0;color:var(--hasp-text,#1C1C1C); }
+
+        /* Card footer */
+        .mp-card-footer { padding:1rem 1.25rem;border-top:1px solid var(--hasp-border,#EBEBEB);display:flex;flex-direction:column;gap:0.75rem; }
+        .mp-total-row { display:flex;align-items:center;justify-content:space-between; }
+        .mp-pago-badge { display:inline-flex;align-items:center;gap:0.4rem;border-radius:6px;padding:0.3rem 0.7rem;font-size:0.72rem;font-weight:600; }
+        .mp-total-label { font-size:0.72rem;color:var(--hasp-muted,#6E6E6E); }
+        .mp-total-val { font-size:1.1rem;font-weight:700;color:var(--hasp-text,#1C1C1C); }
+        .mp-actions { display:grid;grid-template-columns:1fr 1fr;gap:0.6rem; }
+        .mp-btn-detail { border:1px solid var(--hasp-border,#EBEBEB);background:#fff;border-radius:8px;padding:0.6rem;font-size:0.8rem;font-weight:600;cursor:pointer;color:var(--hasp-muted,#6E6E6E);font-family:inherit;transition:all .14s; }
+        .mp-btn-detail:hover { border-color:var(--hasp-brand,#C8511B);color:var(--hasp-brand,#C8511B); }
+        .mp-btn-reorder { background:var(--hasp-brand,#C8511B);color:#fff;border:none;border-radius:8px;padding:0.6rem;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .14s; }
+        .mp-btn-reorder:hover { opacity:0.88; }
+        .mp-detail-panel { background:var(--hasp-bg,#F9F9F7);border-radius:8px;padding:0.75rem;font-size:0.78rem;color:var(--hasp-muted,#6E6E6E); }
+
+        /* Empty */
+        .mp-empty { background:#fff;border:1px solid var(--hasp-border,#EBEBEB);border-radius:16px;padding:3rem 1.5rem;text-align:center; }
+        .mp-empty-icon { font-size:2.5rem;margin-bottom:0.75rem; }
+        .mp-empty-title { font-size:1.1rem;font-weight:700;color:var(--hasp-text,#1C1C1C);margin-bottom:0.3rem; }
+        .mp-empty-desc { font-size:0.85rem;color:var(--hasp-muted,#6E6E6E);margin-bottom:1.25rem; }
+        .mp-empty-btn { display:inline-flex;align-items:center;gap:0.4rem;background:var(--hasp-brand,#C8511B);color:#fff;border-radius:8px;padding:0.65rem 1.4rem;font-size:0.875rem;font-weight:600;text-decoration:none; }
+
+        /* Support */
+        .mp-support { background:#fff;border:1px solid var(--hasp-border,#EBEBEB);border-radius:14px;padding:1.1rem 1.4rem;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:1rem;margin-top:2rem;text-align:center; }
+        @media(min-width:600px){ .mp-support{flex-direction:row;text-align:left;} }
+        .mp-support-icon { width:40px;height:40px;border-radius:50%;background:var(--hasp-brand-lt,#FDF0E8);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0; }
+        .mp-support-title { font-size:0.875rem;font-weight:700;color:var(--hasp-text,#1C1C1C); }
+        .mp-support-desc { font-size:0.78rem;color:var(--hasp-muted,#6E6E6E);margin-top:0.15rem; }
+        .mp-support-btn { display:inline-flex;align-items:center;gap:0.4rem;border:1px solid var(--hasp-border,#EBEBEB);background:#fff;border-radius:8px;padding:0.5rem 1rem;font-size:0.8rem;font-weight:600;color:var(--hasp-brand,#C8511B);text-decoration:none;white-space:nowrap;flex-shrink:0; }
+        .mp-support-btn:hover { background:var(--hasp-brand-lt,#FDF0E8); }
+
+        @media(max-width:640px){ .mp-wrap{padding:1.25rem 1rem 3rem;} }
+    </style>
+
+    <div class="mp-wrap">
+
+        {{-- Confirmación del último pedido --}}
+        @if (session('mensaje'))
+            @php
+                $metodoUltimo = strtolower($ultimo->metodo_pago ?? '');
+                $iconoPagoUltimo = str_contains($metodoUltimo, 'yape') || str_contains($metodoUltimo, 'plin') ? '📱'
+                    : (str_contains($metodoUltimo, 'tarjeta') ? '💳' : '💵');
+            @endphp
+            <div class="mp-confirm">
+                <div style="display:flex;align-items:center;gap:0.85rem;">
+                    <div class="mp-confirm-icon">✅</div>
+                    <div>
+                        <div class="mp-confirm-title">{{ session('mensaje') }}</div>
+                        <div class="mp-confirm-sub">
                             @if ($ultimo && $ultimo->codigo_transaccion)
-                                <span>Código: <span class="font-semibold text-uch-blue">{{ $ultimo->codigo_transaccion }}</span></span>
-                                <span class="text-uch-border">•</span>
+                                Código: <span class="mp-confirm-code">{{ $ultimo->codigo_transaccion }}</span> ·
                             @endif
                             @if ($ultimo && $ultimo->metodo_pago)
-                                <span class="flex items-center gap-1 text-uch-blue">
-                                    <span class="material-symbols-outlined text-[16px]">{{ $iconoPagoUltimo }}</span>
-                                    {{ $ultimo->metodo_pago }}
-                                </span>
+                                {{ $iconoPagoUltimo }} {{ $ultimo->metodo_pago }}
                             @endif
-                        </p>
+                        </div>
                     </div>
                 </div>
-
-                <div class="sm:self-center shrink-0 pl-14 sm:pl-0">
-                    <div class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-uch-bg text-uch-navy text-label-md">
-                        <span class="material-symbols-outlined text-uch-amber text-[18px]">timer</span>
-                        <span>Estimado: <strong class="font-bold">10 - 15 min</strong></span>
-                    </div>
-                </div>
-            </section>
+                <span class="mp-confirm-eta">⏱ Estimado: <strong>10 – 15 min</strong></span>
+            </div>
         @endif
 
-        <div x-data="{ filtro: 'todos' }" class="space-y-7">
-            <!-- Encabezado y filtros -->
-            <header class="flex flex-col md:flex-row md:items-end justify-between gap-6 pt-2">
-                <div>
-                    <span class="text-label-md uppercase tracking-widest text-uch-blue flex items-center gap-1.5 mb-1.5">
-                        <span class="w-2 h-2 rounded-full bg-uch-cyan animate-pulse"></span>
-                        Seguimiento en tiempo real
-                    </span>
-                    <h1 class="text-headline-lg-mobile lg:text-headline-lg font-rubik text-uch-navy tracking-tight">
-                        Mis pedidos
-                    </h1>
-                    <p class="text-body-md sm:text-body-lg text-uch-muted mt-1">
-                        Revisa el estado de tu orden actual y el historial de tus consumos en el comedor.
-                    </p>
-                </div>
+        <div x-data="{ filtro: 'todos' }">
 
-                <nav class="flex items-center gap-2 p-1.5 bg-uch-border/50 rounded-full shrink-0 self-start md:self-auto overflow-x-auto max-w-full no-scrollbar" aria-label="Filtrar pedidos">
-                    <button type="button"
-                            @click="filtro = 'todos'"
-                            :class="filtro === 'todos' ? 'bg-gradient-to-r from-uch-blue to-uch-cyan text-white shadow-sm' : 'bg-uch-surface text-uch-navy hover:bg-uch-bg'"
-                            class="px-5 py-2 rounded-full text-label-md font-semibold transition-all flex items-center gap-1.5 shrink-0">
-                        <span>Todos</span>
-                        <span :class="filtro === 'todos' ? 'bg-white/25 text-white' : 'bg-uch-bg text-uch-muted'" class="px-1.5 py-0.5 rounded-full text-[11px] font-bold">{{ $conteo['todos'] }}</span>
+            {{-- Encabezado --}}
+            <div class="mp-header">
+                <div>
+                    <div class="mp-eyebrow"><span class="mp-eyebrow-dot"></span> Seguimiento en tiempo real</div>
+                    <h1 class="mp-title">Mis pedidos</h1>
+                    <p class="mp-sub">Revisa el estado de tu orden actual y el historial de tus consumos.</p>
+                </div>
+                <div class="mp-tabs">
+                    <button class="mp-tab" :class="{ 'mp-active': filtro === 'todos' }" @click="filtro='todos'">
+                        Todos <span class="mp-tab-count">{{ $conteo['todos'] }}</span>
                     </button>
-                    <button type="button"
-                            @click="filtro = 'curso'"
-                            :class="filtro === 'curso' ? 'bg-gradient-to-r from-uch-blue to-uch-cyan text-white shadow-sm' : 'bg-uch-surface text-uch-navy hover:bg-uch-bg'"
-                            class="px-4 py-2 rounded-full text-label-md font-semibold transition-all flex items-center gap-1.5 shrink-0">
-                        <span>En curso</span>
-                        <span :class="filtro === 'curso' ? 'bg-white/25 text-white' : 'bg-uch-amber/15 text-[#B45309]'" class="px-1.5 py-0.5 rounded-full text-[11px] font-bold">{{ $conteo['curso'] }}</span>
+                    <button class="mp-tab" :class="{ 'mp-active': filtro === 'curso' }" @click="filtro='curso'">
+                        En curso <span class="mp-tab-count">{{ $conteo['curso'] }}</span>
                     </button>
-                    <button type="button"
-                            @click="filtro = 'entregado'"
-                            :class="filtro === 'entregado' ? 'bg-gradient-to-r from-uch-blue to-uch-cyan text-white shadow-sm' : 'bg-uch-surface text-uch-navy hover:bg-uch-bg'"
-                            class="px-4 py-2 rounded-full text-label-md font-semibold transition-all flex items-center gap-1.5 shrink-0">
-                        <span>Entregados</span>
-                        <span :class="filtro === 'entregado' ? 'bg-white/25 text-white' : 'bg-uch-bg text-uch-muted'" class="px-1.5 py-0.5 rounded-full text-[11px] font-bold">{{ $conteo['entregado'] }}</span>
+                    <button class="mp-tab" :class="{ 'mp-active': filtro === 'entregado' }" @click="filtro='entregado'">
+                        Entregados <span class="mp-tab-count">{{ $conteo['entregado'] }}</span>
                     </button>
                     @if ($conteo['cancelado'] > 0)
-                        <button type="button"
-                                @click="filtro = 'cancelado'"
-                                :class="filtro === 'cancelado' ? 'bg-gradient-to-r from-uch-blue to-uch-cyan text-white shadow-sm' : 'bg-uch-surface text-uch-navy hover:bg-uch-bg'"
-                                class="px-4 py-2 rounded-full text-label-md font-semibold transition-all flex items-center gap-1.5 shrink-0">
-                            <span>Cancelados</span>
-                            <span :class="filtro === 'cancelado' ? 'bg-white/25 text-white' : 'bg-uch-coral/15 text-uch-coral-dark'" class="px-1.5 py-0.5 rounded-full text-[11px] font-bold">{{ $conteo['cancelado'] }}</span>
+                        <button class="mp-tab" :class="{ 'mp-active': filtro === 'cancelado' }" @click="filtro='cancelado'">
+                            Cancelados <span class="mp-tab-count">{{ $conteo['cancelado'] }}</span>
                         </button>
                     @endif
-                </nav>
-            </header>
+                </div>
+            </div>
 
-            <!-- Grilla de pedidos -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-7">
+            {{-- Grid de tarjetas --}}
+            <div class="mp-grid">
                 @forelse ($pedidos as $indice => $pedido)
                     @php
                         $estilo = $estilosEstado[$pedido->estado] ?? [
                             'etiqueta' => ucfirst(str_replace('_', ' ', $pedido->estado ?? 'Registrado')),
-                            'grupo' => 'curso',
-                            'barra' => 'bg-uch-blue',
-                            'badge' => 'bg-uch-bg text-uch-navy',
-                            'paso' => 1,
-                            'chip' => 'Registrado',
+                            'grupo' => 'curso', 'color' => '#1565C0', 'bg' => '#E3F2FD',
+                            'barra' => '#1565C0', 'paso' => 1, 'chip' => 'Registrado',
                         ];
 
-                        $itemsPedido = $pedido->detalles->map(function ($detalle) {
-                            $esMenu = $detalle->tipo_item === 'menu';
-
+                        $itemsPedido = $pedido->detalles->map(function ($d) {
+                            $esMenu = $d->tipo_item === 'menu';
                             return [
-                                'id' => $esMenu
-                                    ? 'menu-' . $detalle->menu_id . '-' . $detalle->entrada_id . '-' . $detalle->fondo_id . '-' . $detalle->refresco_id
-                                    : $detalle->producto_id,
-                                'tipo' => $detalle->tipo_item,
-                                'menu_id' => $detalle->menu_id,
-                                'opciones' => $esMenu ? [
-                                    'entrada' => $detalle->entrada_id,
-                                    'fondo' => $detalle->fondo_id,
-                                    'refresco' => $detalle->refresco_id,
-                                ] : null,
-                                'nombre' => $esMenu ? ($detalle->menu->titulo ?? 'Menú del día') : ($detalle->producto->nombre ?? 'Producto'),
-                                'detalle' => $detalle->detalle_menu ?? '',
-                                'precio' => (float) $detalle->precio_unitario,
-                                'cantidad' => $detalle->cantidad,
+                                'id'       => $esMenu ? 'menu-'.$d->menu_id.'-'.$d->entrada_id.'-'.$d->fondo_id.'-'.$d->refresco_id : $d->producto_id,
+                                'tipo'     => $d->tipo_item,
+                                'menu_id'  => $d->menu_id,
+                                'opciones' => $esMenu ? ['entrada'=>$d->entrada_id,'fondo'=>$d->fondo_id,'refresco'=>$d->refresco_id] : null,
+                                'nombre'   => $esMenu ? ($d->menu->titulo ?? 'Menú del día') : ($d->producto->nombre ?? 'Producto'),
+                                'detalle'  => $d->detalle_menu ?? '',
+                                'precio'   => (float) $d->precio_unitario,
+                                'cantidad' => $d->cantidad,
                             ];
                         })->values();
 
                         $metodo = strtolower($pedido->metodo_pago ?? '');
-                        $iconoPago = str_contains($metodo, 'yape') || str_contains($metodo, 'plin')
-                            ? 'smartphone'
-                            : (str_contains($metodo, 'tarjeta') ? 'credit_card' : 'payments');
+                        $iconoPago = str_contains($metodo,'yape')||str_contains($metodo,'plin') ? '📱'
+                            : (str_contains($metodo,'tarjeta') ? '💳' : '💵');
+                        $fillPct = max(0, ($estilo['paso'] - 1) * 33.33);
                     @endphp
 
                     <article x-data="{ detalle: false }"
                              x-show="filtro === 'todos' || $el.dataset.grupo === filtro"
                              x-cloak
                              data-grupo="{{ $estilo['grupo'] }}"
-                             class="pedido-card bg-uch-surface rounded-card shadow-uch-card p-6 flex flex-col justify-between relative overflow-hidden"
-                             style="animation-delay: {{ $indice * 70 }}ms">
-                        <div class="absolute top-0 left-0 right-0 h-[4px] {{ $estilo['barra'] }}"></div>
+                             class="mp-card">
 
-                        <div class="space-y-6">
-                            <!-- Cabecera -->
-                            <div class="flex items-start justify-between gap-4">
+                        <div class="mp-card-top-bar" style="background:{{ $estilo['barra'] }}"></div>
+
+                        <div class="mp-card-body">
+                            {{-- Cabecera --}}
+                            <div class="mp-card-head">
                                 <div>
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <span class="font-rubik text-headline-sm text-uch-navy">
-                                            Pedido #{{ str_pad((string) $pedido->id, 3, '0', STR_PAD_LEFT) }}
-                                        </span>
-                                        <span class="px-2 py-0.5 rounded bg-uch-bg text-uch-muted text-[11px] font-semibold">{{ $estilo['chip'] }}</span>
+                                    <div>
+                                        <span class="mp-order-num">Pedido #{{ str_pad($pedido->id, 3, '0', STR_PAD_LEFT) }}</span>
+                                        <span class="mp-order-chip">{{ $estilo['chip'] }}</span>
                                     </div>
-                                    <p class="text-body-sm text-uch-muted flex items-center gap-1 mt-1">
-                                        <span class="material-symbols-outlined text-[15px]">event</span>
-                                        {{ $pedido->created_at->format('d/m/Y • h:i a') }}
-                                    </p>
+                                    <div class="mp-order-date">📅 {{ $pedido->created_at->format('d/m/Y · h:i a') }}</div>
                                 </div>
-
-                                <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full {{ $estilo['badge'] }} text-label-md shadow-sm shrink-0">
+                                <span class="mp-status-badge" style="background:{{ $estilo['bg'] }};color:{{ $estilo['color'] }}">
                                     @if ($estilo['paso'] > 0 && $estilo['paso'] < 4)
-                                        <span class="w-2.5 h-2.5 rounded-full bg-current animate-ping"></span>
-                                    @else
-                                        <span class="material-symbols-outlined text-[16px]">{{ $estilo['paso'] === 4 ? 'check_circle' : 'info' }}</span>
+                                        <span class="mp-status-dot"></span>
                                     @endif
                                     {{ $estilo['etiqueta'] }}
                                 </span>
                             </div>
 
-                            <!-- Progreso -->
+                            {{-- Progreso --}}
                             @if ($estilo['paso'] > 0)
-                                <section aria-label="Progreso del pedido" class="bg-uch-bg/70 rounded-xl p-4">
-                                    <div class="grid grid-cols-4 relative">
-                                        <div class="absolute top-4 left-6 right-6 h-[3px] bg-uch-border z-0"></div>
-                                        <div class="absolute top-4 left-6 h-[3px] bg-uch-teal z-0" style="width: {{ max(0, ($estilo['paso'] - 1) * 33.33) }}%"></div>
-
-                                        @foreach ($pasos as $indicePaso => $paso)
+                                <div class="mp-progress">
+                                    <div class="mp-steps">
+                                        <div class="mp-steps-line"></div>
+                                        <div class="mp-steps-fill" style="width:{{ $fillPct }}%"></div>
+                                        @foreach ($pasos as $i => $paso)
                                             @php
-                                                $completado = $estilo['paso'] === 4 || $indicePaso < $estilo['paso'] - 1;
-                                                $activo = $indicePaso === $estilo['paso'] - 1 && $estilo['paso'] < 4;
+                                                $done   = $estilo['paso'] === 4 || $i < $estilo['paso'] - 1;
+                                                $active = $i === $estilo['paso'] - 1 && $estilo['paso'] < 4;
                                             @endphp
-                                            <div class="flex flex-col items-center text-center relative z-10">
-                                                <div class="w-8 h-8 rounded-full flex items-center justify-center {{ $completado ? 'bg-uch-teal text-white shadow-md' : ($activo ? 'bg-uch-cyan text-white shadow-lg ring-4 ring-uch-cyan/25 animate-pulse' : 'bg-uch-border text-uch-muted') }}">
-                                                    <span class="material-symbols-outlined text-[18px] {{ $completado ? 'font-bold' : '' }}">
-                                                        {{ $completado ? 'check' : $paso['icono'] }}
-                                                    </span>
+                                            <div class="mp-step">
+                                                <div class="mp-step-circle {{ $done ? 'done' : ($active ? 'active' : '') }}">
+                                                    {{ $done ? '✓' : $paso['icono'] }}
                                                 </div>
-                                                <span class="text-label-md text-body-sm mt-2 leading-tight {{ $activo ? 'text-uch-blue font-bold' : ($completado ? 'text-[#004C6B] font-semibold' : 'text-uch-muted') }}">
+                                                <div class="mp-step-label {{ $done ? 'done' : ($active ? 'active' : '') }}">
                                                     {{ $paso['nombre'] }}
-                                                </span>
-                                                <span class="text-body-sm text-[11px] {{ $activo ? 'text-uch-cyan font-semibold' : 'text-uch-muted' }}">
-                                                    {{ $activo ? 'En curso' : ($completado ? 'Completado' : '--:--') }}
-                                                </span>
+                                                </div>
                                             </div>
                                         @endforeach
                                     </div>
-                                </section>
+                                </div>
                             @else
-                                <div class="p-3 rounded-lg bg-uch-coral/10 text-uch-coral-dark text-body-sm">
+                                <div style="padding:0.75rem;border-radius:8px;background:#FEE2E2;color:#B91C1C;font-size:0.82rem;">
                                     Este pedido fue cancelado. Si necesitas ayuda, acércate a ventanilla.
                                 </div>
                             @endif
 
-                            <!-- Artículos -->
-                            <div class="space-y-3">
-                                <h3 class="text-label-md uppercase tracking-wider text-uch-muted">Artículos en esta orden</h3>
-                                <div class="rounded-xl divide-y divide-uch-border">
-                                    @foreach ($pedido->detalles as $detalle)
-                                        @php
-                                            $esMenu = $detalle->tipo_item === 'menu';
-                                            $slugProducto = \Illuminate\Support\Str::slug($detalle->producto->nombre ?? '');
-                                            $iconoProducto = $esMenu ? 'lunch_dining' : ($iconosProducto[$slugProducto] ?? 'restaurant');
-                                            $nombreArticulo = $esMenu
-                                                ? ($detalle->menu->titulo ?? 'Menú del día')
-                                                : ($detalle->producto->nombre ?? 'Producto');
-                                        @endphp
-                                        <div class="py-2.5 flex items-center justify-between gap-4">
-                                            <div class="flex items-center gap-3 min-w-0">
-                                                <div class="w-9 h-9 rounded-lg bg-uch-bg flex items-center justify-center text-uch-navy shrink-0">
-                                                    <span class="material-symbols-outlined text-[20px]">{{ $iconoProducto }}</span>
-                                                </div>
-                                                <div class="min-w-0">
-                                                    <p class="font-rubik text-body-md text-uch-navy font-semibold truncate">
-                                                        {{ $detalle->cantidad }}x {{ $nombreArticulo }}
-                                                    </p>
-                                                    @if ($esMenu && $detalle->detalle_menu)
-                                                        <p class="text-body-sm text-uch-muted truncate">{{ $detalle->detalle_menu }}</p>
-                                                    @endif
-                                                    <p class="text-body-sm text-uch-muted">S/ {{ number_format($detalle->precio_unitario, 2) }} c/u</p>
-                                                </div>
+                            {{-- Artículos --}}
+                            <div>
+                                <div class="mp-items-label">Artículos en esta orden</div>
+                                @foreach ($pedido->detalles as $det)
+                                    @php
+                                        $esMenu = $det->tipo_item === 'menu';
+                                        $nombreArt = $esMenu ? ($det->menu->titulo ?? 'Menú del día') : ($det->producto->nombre ?? 'Producto');
+                                        $emoji = $esMenu ? '🍽️' : '☕';
+                                    @endphp
+                                    <div class="mp-item">
+                                        <div style="display:flex;align-items:flex-start;gap:0.65rem;min-width:0;">
+                                            <div class="mp-item-icon">{{ $emoji }}</div>
+                                            <div style="min-width:0;">
+                                                <div class="mp-item-name">{{ $det->cantidad }}× {{ $nombreArt }}</div>
+                                                @if ($esMenu && $det->detalle_menu)
+                                                    <div class="mp-item-det">{{ $det->detalle_menu }}</div>
+                                                @endif
+                                                <div class="mp-item-det">S/ {{ number_format($det->precio_unitario, 2) }} c/u</div>
                                             </div>
-                                            <span class="font-rubik text-body-md text-uch-navy font-bold shrink-0">
-                                                S/ {{ number_format($detalle->precio_unitario * $detalle->cantidad, 2) }}
-                                            </span>
                                         </div>
-                                    @endforeach
-                                </div>
+                                        <span class="mp-item-price">S/ {{ number_format($det->precio_unitario * $det->cantidad, 2) }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
 
-                        <!-- Pie de tarjeta -->
-                        <footer class="pt-5 mt-6 border-t border-uch-border space-y-4">
-                            <div class="flex items-center justify-between gap-3">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md {{ $pedido->pagado ? 'bg-uch-teal/15 text-[#007A70]' : 'bg-uch-amber/15 text-[#B45309]' }} text-body-sm font-semibold">
-                                    <span class="material-symbols-outlined text-[16px]">{{ $pedido->pagado ? 'verified' : 'schedule' }}</span>
-                                    {{ $pedido->pagado ? 'Pagado · ' . ($pedido->metodo_pago ?? 'Método registrado') : 'Pendiente de cobro en caja' }}
+                        {{-- Pie --}}
+                        <div class="mp-card-footer">
+                            <div class="mp-total-row">
+                                <span class="mp-pago-badge" style="background:{{ $pedido->pagado ? '#E8F5E9' : '#FEF3C7' }};color:{{ $pedido->pagado ? '#2E7D32' : '#B45309' }}">
+                                    {{ $pedido->pagado ? '✓ Pagado · '.($pedido->metodo_pago ?? '') : '⏳ Pendiente de cobro' }}
                                 </span>
-                                <div class="text-right">
-                                    <span class="text-body-sm text-uch-muted block">{{ $pedido->pagado ? 'Total pagado' : 'Total' }}</span>
-                                    <span class="font-rubik text-headline-sm text-uch-navy font-bold">S/ {{ number_format($pedido->total, 2) }}</span>
+                                <div style="text-align:right;">
+                                    <div class="mp-total-label">Total</div>
+                                    <div class="mp-total-val">S/ {{ number_format($pedido->total, 2) }}</div>
                                 </div>
                             </div>
 
-                            <div x-show="detalle" x-cloak class="rounded-lg bg-uch-bg p-3 text-body-sm text-uch-muted space-y-1">
-                                <span class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-[16px] {{ $pedido->pagado ? 'text-uch-teal' : 'text-uch-amber' }}">{{ $iconoPago }}</span>
-                                    {{ $pedido->metodo_pago ?? 'Método no registrado' }}
-                                </span>
+                            <div x-show="detalle" x-cloak class="mp-detail-panel">
+                                <div>{{ $iconoPago }} {{ $pedido->metodo_pago ?? 'Método no registrado' }}</div>
                                 @if ($pedido->codigo_transaccion)
-                                    <p>Código: <strong class="text-uch-navy">{{ $pedido->codigo_transaccion }}</strong></p>
+                                    <div>Código: <strong style="color:var(--hasp-text)">{{ $pedido->codigo_transaccion }}</strong></div>
                                 @endif
-                                <p>Estado actual: <strong class="text-uch-navy">{{ $estilo['etiqueta'] }}</strong></p>
+                                <div>Estado: <strong style="color:var(--hasp-text)">{{ $estilo['etiqueta'] }}</strong></div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-3 pt-1">
-                                <button type="button"
-                                        @click="detalle = !detalle"
-                                        class="py-2.5 px-4 rounded-xl bg-uch-bg hover:bg-uch-border text-uch-blue text-label-md transition-all flex items-center justify-center gap-1.5">
-                                    <span class="material-symbols-outlined text-[18px]">receipt_long</span>
-                                    <span x-text="detalle ? 'Ocultar detalle' : 'Ver detalle'"></span>
-                                </button>
-                                <button type="button"
-                                        @click="volverAPedir(@js($itemsPedido))"
-                                        class="py-2.5 px-4 rounded-xl bg-uch-coral hover:bg-uch-coral-dark text-white text-label-md shadow-sm hover:shadow transition-all flex items-center justify-center gap-1.5">
-                                    <span class="material-symbols-outlined text-[18px]">replay</span>
-                                    <span>Volver a pedir</span>
-                                </button>
+                            <div class="mp-actions">
+                                <button type="button" class="mp-btn-detail" @click="detalle = !detalle"
+                                        x-text="detalle ? 'Ocultar detalle' : 'Ver detalle'"></button>
+                                <button type="button" class="mp-btn-reorder"
+                                        @click="volverAPedir(@js($itemsPedido))">🔁 Volver a pedir</button>
                             </div>
-                        </footer>
+                        </div>
                     </article>
+
                 @empty
-                    <div class="col-span-full bg-uch-surface rounded-card shadow-uch-card p-10 text-center">
-                        <span class="material-symbols-outlined text-uch-muted text-[44px]">receipt_long</span>
-                        <p class="font-rubik text-headline-sm text-uch-navy mt-space-sm">Todavía no tienes pedidos</p>
-                        <p class="text-body-md text-uch-muted mt-space-xs">Cuando hagas tu primer pedido, podrás seguirlo desde aquí.</p>
-                        <a href="/menu" class="inline-flex items-center gap-2 mt-space-md bg-uch-coral text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-uch-coral-dark transition-colors">
-                            Ir al menú
-                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-                        </a>
+                    <div class="mp-empty" style="grid-column:1/-1;">
+                        <div class="mp-empty-icon">🧾</div>
+                        <div class="mp-empty-title">Todavía no tienes pedidos</div>
+                        <div class="mp-empty-desc">Cuando hagas tu primer pedido, podrás seguirlo desde aquí.</div>
+                        <a href="/menu" class="mp-empty-btn">Ir al menú →</a>
                     </div>
                 @endforelse
             </div>
 
-            <!-- Estados filtrados sin resultados -->
-            <p x-show="filtro === 'curso' && {{ $conteo['curso'] }} === 0" x-cloak class="text-center text-body-md text-uch-muted py-8">
+            {{-- Mensajes sin resultados por filtro --}}
+            <p x-show="filtro === 'curso' && {{ $conteo['curso'] }} === 0" x-cloak
+               style="text-align:center;color:var(--hasp-muted);padding:2rem 1rem;font-size:0.875rem;">
                 No tienes pedidos en curso en este momento.
             </p>
-            <p x-show="filtro === 'entregado' && {{ $conteo['entregado'] }} === 0" x-cloak class="text-center text-body-md text-uch-muted py-8">
+            <p x-show="filtro === 'entregado' && {{ $conteo['entregado'] }} === 0" x-cloak
+               style="text-align:center;color:var(--hasp-muted);padding:2rem 1rem;font-size:0.875rem;">
                 Todavía no tienes pedidos entregados.
             </p>
 
-            <!-- Soporte -->
-            <aside id="soporte" class="p-5 rounded-card bg-uch-surface shadow-uch-card flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
-                <div class="flex items-center gap-3.5 text-center sm:text-left">
-                    <div class="w-10 h-10 rounded-full bg-uch-blue/10 text-uch-blue flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-[22px]">contact_support</span>
-                    </div>
+            {{-- Soporte --}}
+            <div class="mp-support">
+                <div style="display:flex;align-items:center;gap:0.85rem;">
+                    <div class="mp-support-icon">💬</div>
                     <div>
-                        <h4 class="font-rubik text-body-md text-uch-navy font-bold">¿Tienes dudas o necesitas modificar tu pedido?</h4>
-                        <p class="text-body-sm text-uch-muted">Acércate a ventanilla del Comedor Universitario en el Pabellón A o vuelve al menú para hacer otro pedido.</p>
+                        <div class="mp-support-title">¿Tienes dudas o necesitas modificar tu pedido?</div>
+                        <div class="mp-support-desc">Acércate a ventanilla del Comedor Universitario · Pabellón A.</div>
                     </div>
                 </div>
-                <a href="/menu" class="shrink-0 px-4 py-2 rounded-xl bg-uch-bg text-uch-blue text-body-sm hover:bg-uch-border transition-all flex items-center gap-1.5">
-                    <span class="material-symbols-outlined text-[18px]">restaurant_menu</span>
-                    Volver al menú
-                </a>
-            </aside>
+                <a href="/menu" class="mp-support-btn">🍽️ Volver al menú</a>
+            </div>
         </div>
     </div>
 
     <script>
         function volverAPedir(items) {
             const actuales = (() => {
-                try {
-                    return JSON.parse(localStorage.getItem('carrito') || '[]');
-                } catch (error) {
-                    return [];
-                }
+                try { return JSON.parse(localStorage.getItem('carrito') || '[]'); }
+                catch { return []; }
             })();
-
-            items.forEach((item) => {
-                const existente = actuales.find((producto) => producto.id === item.id);
-
-                if (existente) {
-                    existente.cantidad += item.cantidad;
-                } else {
-                    actuales.push({ ...item });
-                }
+            items.forEach(item => {
+                const ex = actuales.find(p => p.id === item.id);
+                if (ex) ex.cantidad += item.cantidad;
+                else actuales.push({ ...item });
             });
-
             localStorage.setItem('carrito', JSON.stringify(actuales));
             localStorage.setItem('carrito_checkout', JSON.stringify(actuales));
             window.dispatchEvent(new CustomEvent('carrito-actualizado', { detail: actuales }));
