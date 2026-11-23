@@ -22,13 +22,13 @@
                 </div>
                 <h1 class="font-rubik text-headline-lg-mobile tracking-tight text-uch-navy lg:text-headline-lg">Productos</h1>
                 <p class="text-body-md text-uch-muted">
-                    Administra los adicionales, bebidas, precios, etiquetas y disponibilidad en tienda.
+                    Adicionales, bebidas, precios y disponibilidad.
                 </p>
             </div>
             <a href="/admin/productos/crear"
                class="inline-flex shrink-0 items-center gap-space-xs rounded-[10px] bg-uch-navy px-5 py-2.5 text-label-lg text-white shadow-sm transition-all hover:bg-uch-blue active:scale-[0.98]">
                 <span class="material-symbols-outlined text-[20px]">add</span>
-                + Nuevo producto
+                Nuevo producto
             </a>
         </header>
 

@@ -27,7 +27,7 @@
                 </div>
                 <h1 class="font-rubik text-headline-lg-mobile tracking-tight text-uch-navy lg:text-headline-lg">Categorías</h1>
                 <p class="text-body-md text-uch-muted">
-                    Organiza las secciones y colores que verán los alumnos en el menú digital del campus.
+                    Secciones y colores del menú digital.
                 </p>
             </div>
             <div class="flex flex-wrap items-center gap-space-sm">

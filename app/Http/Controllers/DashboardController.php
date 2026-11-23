@@ -90,33 +90,18 @@ class DashboardController extends Controller
             $movimiento->setAttribute('nombre_item', $nombre ?? 'Ítem #'.$movimiento->item_id);
         });
 
-        $ventasPorMenu = DetallePedido::query()
-            ->where('tipo_item', 'menu')
-            ->whereHas('pedido', function ($query) use ($hoy): void {
-                $query->whereDate('created_at', $hoy)
-                    ->where('estado', '!=', 'cancelado');
-            })
-            ->selectRaw('menu_id, SUM(cantidad) as vendidas')
-            ->groupBy('menu_id')
-            ->get()
-            ->mapWithKeys(fn (DetallePedido $detalle): array => [
-                $detalle->menu_id => (int) $detalle->vendidas,
-            ]);
-
         $ordenMenus = ['universitario' => 0, 'ejecutivo' => 1, 'dieta' => 2];
 
         $menusDelDia = MenuDia::with(['opciones.componente'])
             ->get()
             ->sortBy(fn (MenuDia $menu): int => $ordenMenus[$menu->tipo_menu] ?? 99)
             ->values()
-            ->map(function (MenuDia $menu) use ($ventasPorMenu): array {
+            ->map(function (MenuDia $menu): array {
                 $fondos = $menu->opciones->filter(
                     fn (MenuDiaOpcion $opcion): bool => $opcion->habilitado && $opcion->componente?->tiempo === 'fondo'
                 );
 
                 $raciones = (int) $fondos->sum(fn (MenuDiaOpcion $opcion): int => max(0, (int) $opcion->stock_raciones));
-                $vendidas = (int) ($ventasPorMenu->get($menu->id) ?? 0);
-                $total = $raciones + $vendidas;
 
                 $precio = $menu->precioVisible();
 
@@ -138,9 +123,6 @@ class DashboardController extends Controller
                     'plato' => $fondos->first()?->componente->nombre ?? 'Plato principal',
                     'precioTexto' => ($menu->es_precio_variable ? 'Desde S/ ' : 'S/ ').number_format($precio, 2),
                     'raciones' => $raciones,
-                    'vendidas' => $vendidas,
-                    'total' => $total,
-                    'porcentaje' => $total > 0 ? (int) round($raciones / $total * 100) : 0,
                 ];
             })
             ->values();
@@ -192,8 +174,6 @@ class DashboardController extends Controller
             'pedidosHoy' => $pedidosHoy,
             'enPreparacion' => $enPreparacion,
             'totalProductos' => $totalProductos,
-            'productosStockBajo' => $productosStockBajo,
-            'racionesStockBajo' => $racionesStockBajo,
             'alertasResumen' => $alertasResumen,
             'alertasStock' => $alertasStock,
             'ultimosMovimientos' => $ultimosMovimientos,

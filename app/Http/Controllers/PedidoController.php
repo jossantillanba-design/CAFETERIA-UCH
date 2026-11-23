@@ -52,48 +52,11 @@ class PedidoController extends Controller
             ->orderBy('id')
             ->get();
 
-        $fechaHistorial = (string) $request->query('fecha', '');
-        $fechaValida = preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaHistorial) === 1
-            && checkdate((int) substr($fechaHistorial, 5, 2), (int) substr($fechaHistorial, 8, 2), (int) substr($fechaHistorial, 0, 4));
-
-        if (! $fechaValida) {
-            $fechaHistorial = today()->toDateString();
-        }
-
-        $historialBuscar = trim((string) $request->query('historial', ''));
-
-        $consultaHistorial = Pedido::with($relaciones)
-            ->whereIn('estado', ['entregado', 'cancelado'])
-            ->whereDate('created_at', $fechaHistorial);
-
-        $this->aplicarBusqueda($consultaHistorial, $historialBuscar !== '' ? $historialBuscar : $buscar);
-
-        $historial = $consultaHistorial
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->paginate(8)
-            ->withQueryString();
-
-        $historial->each(function (Pedido $pedido): void {
-            $resumen = $pedido->detalles
-                ->map(fn (DetallePedido $detalle): string => $detalle->cantidad.'x '.(
-                    $detalle->tipo_item === 'menu'
-                        ? ($detalle->menu->titulo ?? 'Menú del día')
-                        : ($detalle->producto->nombre ?? 'Producto')
-                ))
-                ->implode(', ');
-
-            $pedido->setAttribute('resumen', $resumen !== '' ? $resumen : 'Consulta en caja');
-        });
-
         return view('admin.pedidos.index', [
             'pedidos' => $pedidos,
             'buscar' => $buscar,
             'estadoFiltro' => $estadoFiltro,
             'conteos' => $conteos,
-            'historial' => $historial,
-            'historialBuscar' => $historialBuscar,
-            'fechaHistorial' => $fechaHistorial,
             'fechaTurno' => ucfirst(today()->locale('es')->isoFormat('dddd D [de] MMMM [de] YYYY')),
         ]);
     }

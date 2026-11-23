@@ -15,13 +15,20 @@
                 <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div>
                         <h1 class="text-headline-lg-mobile lg:text-headline-lg font-rubik text-uch-navy tracking-tight">Inventario y Control de Stock</h1>
-                        <p class="text-body-md text-uch-muted mt-1">Consulta existencias de productos y raciones de menú con ajustes trazables.</p>
+                        <p class="text-body-md text-uch-muted mt-1">Existencias de productos y raciones de menú.</p>
                     </div>
-                    <button type="button" @click="abrirManual()"
-                            class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-uch-navy text-white text-body-sm font-semibold shadow-sm hover:bg-uch-navy-dark transition-colors shrink-0">
-                        <span class="material-symbols-outlined text-[19px]">add</span>
-                        Nuevo ajuste
-                    </button>
+                    <div class="flex items-center gap-space-sm shrink-0">
+                        <a href="/admin/movimientos"
+                           class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-body-sm font-semibold text-uch-blue transition-colors hover:bg-uch-blue/10">
+                            <span class="material-symbols-outlined text-[19px]">history</span>
+                            Historial de movimientos
+                        </a>
+                        <button type="button" @click="abrirManual()"
+                                class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-uch-navy text-white text-body-sm font-semibold shadow-sm hover:bg-uch-navy-dark transition-colors shrink-0">
+                            <span class="material-symbols-outlined text-[19px]">add</span>
+                            Nuevo ajuste
+                        </button>
+                    </div>
                 </header>
 
                 <!-- Métricas -->
@@ -52,7 +59,10 @@
                         <div>
                             <p class="text-label-md uppercase tracking-wider text-uch-muted">Última auditoría</p>
                             <p class="mt-1 text-headline-sm font-rubik text-uch-navy">{{ $ultimaAuditoria }}</p>
-                            <p class="text-body-sm text-uch-muted">{{ $movimientos->count() }} movimientos recientes</p>
+                            <p class="text-body-sm text-uch-muted">
+                                {{ $totalMovimientos }} movimientos registrados ·
+                                <a href="/admin/movimientos" class="font-semibold text-uch-blue hover:underline">Ver historial</a>
+                            </p>
                         </div>
                         <div class="w-12 h-12 rounded-xl bg-uch-blue/10 flex items-center justify-center text-uch-blue shrink-0">
                             <span class="material-symbols-outlined text-[24px]">published_with_changes</span>
@@ -214,55 +224,6 @@
                         </div>
                     </div>
                 </section>
-
-                <!-- Historial de movimientos -->
-                <section id="historial" class="mt-6 rounded-card border border-uch-border bg-white shadow-uch-card overflow-hidden scroll-mt-24">
-                    <div class="px-5 py-4 border-b border-uch-border bg-uch-surface">
-                        <h2 class="font-rubik text-headline-sm text-uch-navy">Historial de movimientos</h2>
-                        <p class="text-body-sm text-uch-muted">Auditoría de los últimos {{ $movimientos->count() }} ajustes registrados.</p>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full min-w-[820px] text-left">
-                            <thead>
-                                <tr class="bg-uch-bg text-uch-muted text-label-md uppercase tracking-wider">
-                                    <th class="py-3 px-5 font-bold">Fecha</th>
-                                    <th class="py-3 px-5 font-bold">Ítem</th>
-                                    <th class="py-3 px-5 font-bold">Operación</th>
-                                    <th class="py-3 px-5 font-bold">Variación</th>
-                                    <th class="py-3 px-5 font-bold">Motivo</th>
-                                    <th class="py-3 px-5 font-bold">Usuario</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-uch-border">
-                                @forelse ($movimientos as $movimiento)
-                                    <tr class="hover:bg-uch-bg/70 transition-colors">
-                                        <td class="py-3 px-5 whitespace-nowrap text-body-sm text-uch-muted">{{ $movimiento->created_at?->format('d/m H:i') }}</td>
-                                        <td class="py-3 px-5">
-                                            <p class="text-body-sm font-semibold text-uch-navy">{{ $movimiento->nombre_item }}</p>
-                                            <p class="text-body-sm text-uch-muted truncate max-w-xs" title="{{ $movimiento->comentario }}">{{ $movimiento->comentario }}</p>
-                                        </td>
-                                        <td class="py-3 px-5 whitespace-nowrap">
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-md font-bold {{ $movimiento->operacion === 'ingreso' ? 'bg-uch-teal/15 text-[#008779]' : 'bg-uch-coral/10 text-uch-coral-dark' }}">
-                                                <span class="material-symbols-outlined text-[14px]">{{ $movimiento->operacion === 'ingreso' ? 'add_circle' : 'remove_circle' }}</span>
-                                                {{ $movimiento->operacion === 'ingreso' ? 'Ingreso' : ($movimiento->operacion === 'venta' ? 'Venta' : 'Salida') }}
-                                            </span>
-                                        </td>
-                                        <td class="py-3 px-5 whitespace-nowrap text-body-sm text-uch-navy">
-                                            {{ $movimiento->stock_anterior }} → <strong>{{ $movimiento->stock_nuevo }}</strong>
-                                            <span class="text-uch-muted">({{ $movimiento->cantidad > 0 ? '+' : '' }}{{ $movimiento->cantidad }})</span>
-                                        </td>
-                                        <td class="py-3 px-5 text-body-sm text-uch-muted">{{ $movimiento->motivo_categoria }}</td>
-                                        <td class="py-3 px-5 text-body-sm text-uch-muted">{{ $movimiento->usuario->name ?? 'Sistema' }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="py-10 text-center text-body-sm text-uch-muted">Aún no hay movimientos registrados.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-        </section>
 
         <!-- Modal de ajuste trazable -->
         <div x-show="modalAbierto" x-cloak class="fixed inset-0 z-[70] flex items-center justify-center p-4">

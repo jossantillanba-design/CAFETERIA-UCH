@@ -24,31 +24,32 @@
             </div>
         </div>
 
-        <!-- Enlaces de escritorio -->
-        <div class="hidden md:flex items-center gap-6">
-            <a href="/menu" class="pb-1 text-sm border-b-2 transition-colors {{ request()->is('menu') ? 'text-white font-bold border-uch-cyan' : 'text-white/80 font-medium border-transparent hover:text-white hover:border-uch-cyan' }}">
-                Menú
-            </a>
+        <!-- Buscador del catálogo -->
+        @if (request()->is('menu'))
+            <div class="hidden md:block" x-data="{ q: '' }">
+                <div class="relative">
+                    <x-icon name="search" class="w-[18px] h-[18px] absolute left-3 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none" />
+                    <input type="search"
+                           x-init="q = window.busquedaMenu || new URLSearchParams(window.location.search).get('buscar') || ''"
+                           :value="q"
+                           @input="q = $event.target.value; window.busquedaMenu = q; $dispatch('buscar-menu', { value: q })"
+                           placeholder="Buscar plato, café o combo..."
+                           aria-label="Buscar en el menú"
+                           class="w-52 lg:w-64 pl-9 pr-4 py-2 rounded-full bg-white/10 border border-white/20 text-sm text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-uch-cyan focus:bg-white focus:text-uch-text transition-all">
+                </div>
+            </div>
+        @endif
 
+        <!-- Acciones -->
+        <div class="flex items-center gap-3 sm:gap-4 ml-auto">
             @auth
-                <a href="/mis-pedidos" class="pb-1 text-sm font-medium border-b-2 transition-colors {{ request()->is('mis-pedidos') ? 'text-white font-bold border-uch-cyan' : 'text-white/80 border-transparent hover:text-white hover:border-uch-cyan' }}">
-                    Mis pedidos
-                </a>
-
-                @if (auth()->user()->rol === 'administrador')
-                    <a href="/admin/dashboard" class="pb-1 text-sm font-medium border-b-2 transition-colors {{ request()->is('admin*') ? 'text-white font-bold border-uch-cyan' : 'text-white/80 border-transparent hover:text-white hover:border-uch-cyan' }}">
-                        Panel admin
-                    </a>
-                @elseif (auth()->user()->rol === 'empleado')
-                    <a href="/admin/pedidos" class="pb-1 text-sm font-medium border-b-2 transition-colors {{ request()->is('admin*') ? 'text-white font-bold border-uch-cyan' : 'text-white/80 border-transparent hover:text-white hover:border-uch-cyan' }}">
-                        Pedidos
+                @if (in_array(auth()->user()->rol, ['administrador', 'empleado'], true))
+                    <a href="{{ auth()->user()->rol === 'administrador' ? '/admin/dashboard' : '/empleado/tomar-orden' }}"
+                       class="hidden md:inline text-sm font-semibold text-white/85 hover:text-white transition-colors">
+                        {{ auth()->user()->rol === 'administrador' ? 'Panel admin' : 'Panel empleado' }}
                     </a>
                 @endif
             @endauth
-        </div>
-
-        <!-- Acciones -->
-        <div class="flex items-center gap-space-lg">
             @auth
                 <a href="/checkout"
                    aria-label="Ir a mi pedido"
@@ -82,6 +83,7 @@
                             <p class="text-sm font-rubik font-bold text-uch-navy truncate">{{ Auth::user()->name }}</p>
                             <p class="text-xs text-uch-muted font-open">{{ $rolEtiqueta }}</p>
                         </div>
+                        <a href="/mis-pedidos" class="block px-4 py-2 text-sm text-uch-text hover:bg-uch-bg">Mis pedidos</a>
                         <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-uch-text hover:bg-uch-bg">Mi perfil</a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -110,6 +112,19 @@
     <!-- Panel móvil -->
     <div x-show="open" x-cloak class="md:hidden border-t border-white/10 bg-uch-navy px-4 pb-4 pt-2">
         <div class="flex flex-col gap-1">
+            @if (request()->is('menu'))
+                <div class="relative mb-2" x-data="{ q: '' }">
+                    <x-icon name="search" class="w-[18px] h-[18px] absolute left-3 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none" />
+                    <input type="search"
+                           x-init="q = window.busquedaMenu || new URLSearchParams(window.location.search).get('buscar') || ''"
+                           :value="q"
+                           @input="q = $event.target.value; window.busquedaMenu = q; $dispatch('buscar-menu', { value: q })"
+                           placeholder="Buscar plato, café o combo..."
+                           aria-label="Buscar en el menú"
+                           class="w-full pl-9 pr-4 py-2 rounded-full bg-white/10 border border-white/20 text-sm text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-uch-cyan focus:bg-white focus:text-uch-text transition-all">
+                </div>
+            @endif
+
             @auth
                 <div class="flex items-center gap-3 py-2 mb-1 border-b border-white/10">
                     <span class="w-9 h-9 rounded-full bg-uch-cyan text-white font-bold flex items-center justify-center text-xs border-2 border-white/30">{{ $iniciales }}</span>
@@ -120,15 +135,11 @@
                 </div>
             @endauth
 
-            <a href="/menu" @click="open = false" class="px-3 py-2 rounded-lg text-sm font-semibold text-white/85 hover:bg-white/10">Menú</a>
-
             @auth
                 <a href="/mis-pedidos" @click="open = false" class="px-3 py-2 rounded-lg text-sm font-semibold text-white/85 hover:bg-white/10">Mis pedidos</a>
 
-                @if (auth()->user()->rol === 'administrador')
-                    <a href="/admin/dashboard" @click="open = false" class="px-3 py-2 rounded-lg text-sm font-semibold text-white/85 hover:bg-white/10">Panel admin</a>
-                @elseif (auth()->user()->rol === 'empleado')
-                    <a href="/admin/pedidos" @click="open = false" class="px-3 py-2 rounded-lg text-sm font-semibold text-white/85 hover:bg-white/10">Pedidos</a>
+                @if (in_array(auth()->user()->rol, ['administrador', 'empleado'], true))
+                    <a href="{{ auth()->user()->rol === 'administrador' ? '/admin/dashboard' : '/empleado/tomar-orden' }}" @click="open = false" class="px-3 py-2 rounded-lg text-sm font-semibold text-white/85 hover:bg-white/10">{{ auth()->user()->rol === 'administrador' ? 'Panel admin' : 'Panel empleado' }}</a>
                 @endif
 
                 <a href="{{ route('profile.edit') }}" @click="open = false" class="px-3 py-2 rounded-lg text-sm font-semibold text-white/85 hover:bg-white/10">Mi perfil</a>

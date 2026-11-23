@@ -26,11 +26,6 @@ class InventarioController extends Controller
             ->orderBy('stock_raciones')
             ->get();
 
-        $movimientos = InventarioMovimiento::with('usuario')
-            ->latest()
-            ->take(20)
-            ->get();
-
         $inventario = $productos->map(fn (Producto $producto): array => [
             'tipo' => InventarioMovimiento::TIPO_PRODUCTO,
             'item_id' => $producto->id,
@@ -67,29 +62,21 @@ class InventarioController extends Controller
             ];
         }))->values();
 
-        $porClave = $inventario->keyBy(fn (array $item): string => $item['tipo'].'-'.$item['item_id']);
-        $movimientos->each(function (InventarioMovimiento $movimiento) use ($porClave): void {
-            $item = $porClave->get($movimiento->tipo_item.'-'.$movimiento->item_id);
-            $movimiento->setAttribute('nombre_item', $item['nombre'] ?? 'Ítem #'.$movimiento->item_id);
-        });
-
         $alertasProductos = $productos->filter(fn (Producto $producto): bool => $producto->activo && $producto->stock_actual <= $producto->stock_minimo)->count();
         $alertasRaciones = $opciones->filter(fn (MenuDiaOpcion $opcion): bool => $opcion->stock_raciones <= 5)->count();
         $alertasStock = $alertasProductos + $alertasRaciones;
         $racionesDisponibles = (int) $opciones->sum(fn (MenuDiaOpcion $opcion): int => max(0, (int) $opcion->stock_raciones));
-        $ultimaAuditoria = $movimientos->first()?->created_at?->format('d/m H:i') ?? 'Sin registros';
-        $totalRegistros = $inventario->count();
+        $ultimaAuditoria = InventarioMovimiento::latest()->first()?->created_at?->format('d/m H:i') ?? 'Sin registros';
+        $totalMovimientos = InventarioMovimiento::count();
         $motivos = ['Reposición', 'Merma / Dañado', 'Corrección', 'Venta web'];
 
         return view('admin.inventario.index', compact(
             'inventario',
-            'productos',
             'opciones',
-            'movimientos',
+            'totalMovimientos',
             'alertasStock',
             'racionesDisponibles',
             'ultimaAuditoria',
-            'totalRegistros',
             'motivos',
         ));
     }

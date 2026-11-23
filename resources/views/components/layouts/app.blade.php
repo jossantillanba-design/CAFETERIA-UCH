@@ -16,19 +16,21 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 @php
-    $esAdmin = request()->is('admin*')
-        && auth()->check()
-        && in_array(auth()->user()->rol, ['administrador', 'empleado'], true);
+    $esAdmin = request()->is('admin*') && auth()->check() && auth()->user()->rol === 'administrador';
+    $esEmpleado = request()->is('empleado*') && auth()->check() && auth()->user()->rol === 'empleado';
+    $esOperacion = $esAdmin || $esEmpleado;
 @endphp
 
 <body class="min-h-screen flex flex-col bg-uch-bg font-sans text-uch-text antialiased">
     @if ($esAdmin)
         <x-admin-topbar />
+    @elseif ($esEmpleado)
+        <x-empleado-topbar />
     @else
         @include('layouts.navigation')
     @endif
 
-    <main class="flex-1 w-full {{ $esAdmin ? 'pt-16 pl-[76px] lg:pl-[248px]' : 'pt-16' }}">
+    <main class="flex-1 w-full {{ $esOperacion ? 'pt-16 pl-[76px] lg:pl-[248px]' : 'pt-16' }}">
         {{ $slot }}
     </main>
 

@@ -129,6 +129,17 @@
     .no-scrollbar::-webkit-scrollbar {
         display: none;
     }
+
+    .input-numero-limpio {
+        -moz-appearance: textfield;
+        appearance: textfield;
+    }
+
+    .input-numero-limpio::-webkit-inner-spin-button,
+    .input-numero-limpio::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
 }
 
 @media print {

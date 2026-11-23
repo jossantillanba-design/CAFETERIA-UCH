@@ -104,26 +104,4 @@ class MenuDiaController extends Controller
 
         return redirect('/admin/menus')->with('mensaje', $menu->activo ? 'Menú activado.' : 'Menú desactivado.');
     }
-
-    public function storeComponente(Request $request): RedirectResponse
-    {
-        $datos = $request->validate([
-            'nombre' => 'required|string|max:120',
-            'descripcion' => 'nullable|string|max:200',
-            'tiempo' => 'required|in:entrada,fondo,refresco',
-        ]);
-
-        if (MenuComponente::where('nombre', $datos['nombre'])->where('tiempo', $datos['tiempo'])->exists()) {
-            return back()->with('error', 'Ese componente ya existe en el banco de opciones.');
-        }
-
-        MenuComponente::create([
-            'nombre' => $datos['nombre'],
-            'descripcion' => $datos['descripcion'] ?? null,
-            'tiempo' => $datos['tiempo'],
-            'activo_catalogo' => true,
-        ]);
-
-        return back()->with('mensaje', 'Componente añadido al catálogo.');
-    }
 }

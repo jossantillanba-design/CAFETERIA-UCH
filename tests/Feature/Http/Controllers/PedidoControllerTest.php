@@ -17,11 +17,11 @@ class PedidoControllerTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
-    public function test_employee_sees_live_card_details_and_order_history(): void
+    public function test_admin_sees_only_live_orders_in_live_module(): void
     {
         $this->travelTo('2026-11-21 13:00:00');
 
-        $empleado = User::factory()->empleado()->create();
+        $admin = User::factory()->administrador()->create();
         $cliente = User::factory()->cliente()->create(['name' => 'Allison Aguirre']);
         $clienteHistorial = User::factory()->cliente()->create(['name' => 'Carlos Mendoza']);
 
@@ -47,7 +47,7 @@ class PedidoControllerTest extends TestCase
         $queso = Producto::factory()->create(['nombre' => 'Empanada de queso', 'precio' => 7.5]);
         $this->crearDetalleProducto($entregado, $queso);
 
-        $this->actingAs($empleado)->get('/admin/pedidos')
+        $this->actingAs($admin)->get('/admin/pedidos')
             ->assertOk()
             ->assertSee('Pedidos en vivo')
             ->assertSee('Cocina y barra')
@@ -59,11 +59,8 @@ class PedidoControllerTest extends TestCase
             ->assertSee('Chicha morada')
             ->assertSee('Preparar orden')
             ->assertSee('Confirmar entrega')
-            ->assertSee('Historial de pedidos')
-            ->assertSee('Carlos Mendoza')
-            ->assertSee('Empanada de queso')
-            ->assertSee('Ver detalle')
-            ->assertSee('S/ 7.50');
+            ->assertDontSee('Carlos Mendoza')
+            ->assertDontSee('Empanada de queso');
     }
 
     public function test_status_filter_limits_the_live_cards(): void
@@ -76,7 +73,7 @@ class PedidoControllerTest extends TestCase
         $cafeListo = Producto::factory()->create(['nombre' => 'Café filtro listo']);
         $this->crearDetalleProducto($listo, $cafeListo);
 
-        $this->actingAs(User::factory()->empleado()->create())->get('/admin/pedidos?estado=listo')
+        $this->actingAs(User::factory()->administrador()->create())->get('/admin/pedidos?estado=listo')
             ->assertOk()
             ->assertSee('Café filtro listo')
             ->assertDontSee('Café filtro pendiente');
@@ -88,7 +85,7 @@ class PedidoControllerTest extends TestCase
         $producto = Producto::factory()->create(['nombre' => 'Pan de yema filtrado']);
         $this->crearDetalleProducto($pedido, $producto);
 
-        $this->actingAs(User::factory()->empleado()->create())->get('/admin/pedidos?estado=entregado')
+        $this->actingAs(User::factory()->administrador()->create())->get('/admin/pedidos?estado=entregado')
             ->assertOk()
             ->assertSee('Pan de yema filtrado');
     }
@@ -100,7 +97,7 @@ class PedidoControllerTest extends TestCase
     {
         $pedido = $this->crearPedido(['estado' => $estadoInicial]);
 
-        $this->actingAs(User::factory()->empleado()->create())
+        $this->actingAs(User::factory()->administrador()->create())
             ->put('/admin/pedidos/'.$pedido->id.'/estado', ['estado' => $estadoEsperado])
             ->assertRedirect('/admin/pedidos');
 
@@ -111,7 +108,7 @@ class PedidoControllerTest extends TestCase
     {
         $pedido = $this->crearPedido(['estado' => 'pendiente']);
 
-        $this->actingAs(User::factory()->empleado()->create())
+        $this->actingAs(User::factory()->administrador()->create())
             ->put('/admin/pedidos/'.$pedido->id.'/estado', ['estado' => 'estado_inexistente'])
             ->assertRedirect()
             ->assertSessionHasErrors('estado');
@@ -119,52 +116,36 @@ class PedidoControllerTest extends TestCase
         $this->assertSame('pendiente', $pedido->fresh()->estado);
     }
 
-    public function test_history_search_finds_orders_by_client_name(): void
+    public function test_admin_can_create_a_manual_ticket_and_stock_is_discounted(): void
     {
-        $this->travelTo('2026-11-21 13:00:00');
+        $admin = User::factory()->administrador()->create();
+        $producto = Producto::factory()->create([
+            'nombre' => 'Café de prueba para ticket',
+            'precio' => 4.5,
+            'stock_actual' => 10,
+            'activo' => true,
+        ]);
 
-        $allison = User::factory()->cliente()->create(['name' => 'Allison Filtrada']);
-        $carlos = User::factory()->cliente()->create(['name' => 'Carlos Oculto']);
+        $this->actingAs($admin)->post('/admin/pedidos', [
+            'productos' => [
+                ['id' => $producto->id, 'cantidad' => 2],
+            ],
+        ])->assertRedirect('/admin/pedidos');
 
-        $this->crearPedido(['cliente_id' => $allison->id, 'estado' => 'entregado']);
-        $this->crearPedido(['cliente_id' => $carlos->id, 'estado' => 'entregado']);
-
-        $this->actingAs(User::factory()->empleado()->create())->get('/admin/pedidos?historial=Allison')
-            ->assertOk()
-            ->assertSee('Allison Filtrada')
-            ->assertDontSee('Carlos Oculto');
+        $this->assertDatabaseHas('pedidos', [
+            'atendido_por' => $admin->id,
+            'estado' => 'pendiente',
+            'total' => 9,
+        ]);
+        $this->assertDatabaseHas('detalle_pedidos', [
+            'producto_id' => $producto->id,
+            'cantidad' => 2,
+            'subtotal' => 9,
+        ]);
+        $this->assertSame(8, $producto->fresh()->stock_actual);
     }
 
-    public function test_history_date_filter_excludes_orders_from_other_days(): void
-    {
-        $this->travelTo('2026-11-21 13:00:00');
-        $hoy = User::factory()->cliente()->create(['name' => 'Entregado Hoy']);
-        $this->crearPedido(['cliente_id' => $hoy->id, 'estado' => 'entregado']);
-
-        $this->travelTo('2026-11-20 13:00:00');
-        $ayer = User::factory()->cliente()->create(['name' => 'Entregado Ayer']);
-        $this->crearPedido(['cliente_id' => $ayer->id, 'estado' => 'entregado']);
-
-        $this->actingAs(User::factory()->empleado()->create())->get('/admin/pedidos?fecha=2026-11-21')
-            ->assertOk()
-            ->assertSee('Entregado Hoy')
-            ->assertDontSee('Entregado Ayer');
-    }
-
-    public function test_global_search_finds_a_delivered_order_in_the_history(): void
-    {
-        $this->travelTo('2026-11-21 13:00:00');
-
-        $cliente = User::factory()->cliente()->create(['name' => 'Buscado en historial']);
-        $pedido = $this->crearPedido(['cliente_id' => $cliente->id, 'estado' => 'entregado']);
-
-        $this->actingAs(User::factory()->empleado()->create())->get('/admin/pedidos?buscar='.$pedido->id)
-            ->assertOk()
-            ->assertSee('Historial de pedidos')
-            ->assertSee('Buscado en historial');
-    }
-
-    public function test_employee_can_open_ticket_detail_with_full_order_information(): void
+    public function test_admin_can_open_ticket_detail_with_full_order_information(): void
     {
         $cliente = User::factory()->cliente()->create(['name' => 'Ticket Detallado']);
         $pedido = $this->crearPedido([
@@ -176,7 +157,7 @@ class PedidoControllerTest extends TestCase
         ]);
         $this->crearDetalleMenu($pedido, $this->crearMenuConTresTiempos('Menú Ejecutivo'), 2);
 
-        $this->actingAs(User::factory()->empleado()->create())->get('/admin/pedidos/'.$pedido->id)
+        $this->actingAs(User::factory()->administrador()->create())->get('/admin/pedidos/'.$pedido->id)
             ->assertOk()
             ->assertSee('Ticket #'.str_pad((string) $pedido->id, 3, '0', STR_PAD_LEFT))
             ->assertSee('Ticket Detallado')
