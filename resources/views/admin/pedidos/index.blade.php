@@ -1,61 +1,337 @@
 <x-layouts.app>
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold">Pedidos pendientes</h1>
-        <a href="/admin/pedidos/crear" class="bg-blue-900 text-white px-4 py-2 rounded">Nuevo ticket</a>
-    </div>
+    <x-admin-nav />
 
-    @if (session('mensaje'))
-        <div class="bg-green-100 text-green-800 p-3 rounded mb-4">
-            {{ session('mensaje') }}
-        </div>
-    @endif
+    <div class="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <x-flash-message />
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        @forelse ($pedidos as $pedido)
-            <div class="bg-white rounded-lg shadow p-4">
-                <div class="flex justify-between items-start mb-2">
-                    <h2 class="font-bold text-lg">Pedido #{{ $pedido->id }}</h2>
-                    <span class="text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-800 capitalize">
-                        {{ str_replace('_', ' ', $pedido->estado) }}
+        @php
+            $estilosEstado = [
+                'pendiente' => ['barra' => 'bg-uch-amber', 'etiqueta' => 'bg-uch-amber/15 text-[#B45309]', 'punto' => 'bg-uch-amber', 'texto' => 'Pendiente'],
+                'en_preparacion' => ['barra' => 'bg-uch-cyan', 'etiqueta' => 'bg-uch-cyan/15 text-[#0060A9]', 'punto' => 'bg-uch-cyan', 'texto' => 'En preparación'],
+                'listo' => ['barra' => 'bg-uch-teal', 'etiqueta' => 'bg-uch-teal/15 text-[#008779]', 'punto' => 'bg-uch-teal', 'texto' => 'Listo en barra'],
+                'entregado' => ['barra' => 'bg-uch-teal', 'etiqueta' => 'bg-emerald-50 text-emerald-700', 'punto' => 'bg-uch-teal', 'texto' => 'Entregado'],
+                'cancelado' => ['barra' => 'bg-uch-coral', 'etiqueta' => 'bg-uch-coral/10 text-uch-coral-dark', 'punto' => 'bg-uch-coral', 'texto' => 'Cancelado'],
+            ];
+
+            $filtros = [
+                ['clave' => 'todos', 'texto' => 'Todos activos', 'punto' => null],
+                ['clave' => 'pendiente', 'texto' => 'Pendientes', 'punto' => 'bg-uch-amber'],
+                ['clave' => 'en_preparacion', 'texto' => 'En preparación', 'punto' => 'bg-uch-cyan'],
+                ['clave' => 'listo', 'texto' => 'Listos para recoger', 'punto' => 'bg-uch-teal'],
+            ];
+
+            $acciones = [
+                'pendiente' => ['estado' => 'en_preparacion', 'texto' => 'Preparar orden', 'icono' => 'arrow_forward', 'clase' => 'bg-uch-blue text-white hover:bg-uch-navy'],
+                'en_preparacion' => ['estado' => 'listo', 'texto' => 'Marcar como listo', 'icono' => 'done_all', 'clase' => 'bg-uch-cyan text-uch-navy-dark hover:bg-uch-blue hover:text-white'],
+                'listo' => ['estado' => 'entregado', 'texto' => 'Confirmar entrega', 'icono' => 'inventory', 'clase' => 'bg-uch-teal text-white hover:bg-[#008779]'],
+            ];
+        @endphp
+
+        <!-- CABECERA Y FILTROS RÁPIDOS -->
+        <section class="flex flex-col gap-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="h-2.5 w-2.5 rounded-full bg-uch-cyan animate-pulse"></span>
+                    <span class="text-label-md font-bold uppercase tracking-widest text-uch-blue">
+                        Cocina y barra · Turno almuerzo
                     </span>
                 </div>
-                <p class="text-sm text-gray-500 mb-2">{{ $pedido->cliente->name ?? 'Cliente en mostrador' }}</p>
-
-                <ul class="text-sm mb-3">
-                    @foreach ($pedido->detalles as $detalle)
-                        <li>{{ $detalle->cantidad }}x {{ $detalle->producto->nombre }}</li>
-                    @endforeach
-                </ul>
-
-                <p class="font-bold text-blue-900 mb-3">Total: S/{{ number_format($pedido->total, 2) }}</p>
-
-                @if ($pedido->pagado)
-                    <p class="text-xs text-green-700 mb-3">Pagado · {{ $pedido->metodo_pago }}</p>
-                @else
-                    <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mb-3">
-                        <p class="text-sm text-yellow-800 mb-2">Pendiente de cobro en caja</p>
-                        <form action="/admin/pedidos/{{ $pedido->id }}/pagar" method="POST">
-                            @csrf
-                            @method('PUT')
-                            <button type="submit" class="w-full bg-green-700 text-white py-1 rounded text-sm">Registrar pago en efectivo</button>
-                        </form>
-                    </div>
-                @endif
-
-                <form action="/admin/pedidos/{{ $pedido->id }}/estado" method="POST">
-                    @csrf
-                    @method('PUT')
-                    <select name="estado" onchange="this.form.submit()" class="w-full border rounded p-2">
-                        <option value="pendiente" @selected($pedido->estado === 'pendiente')>Pendiente</option>
-                        <option value="en_preparacion" @selected($pedido->estado === 'en_preparacion')>En preparación</option>
-                        <option value="listo" @selected($pedido->estado === 'listo')>Listo</option>
-                        <option value="entregado" @selected($pedido->estado === 'entregado')>Entregado</option>
-                        <option value="cancelado" @selected($pedido->estado === 'cancelado')>Cancelado</option>
-                    </select>
-                </form>
+                <button type="button" onclick="location.reload()" title="{{ $fechaTurno }}"
+                        class="inline-flex items-center gap-1.5 rounded-full bg-uch-surface px-3 py-1 text-label-md text-uch-muted shadow-sm transition-colors hover:text-uch-blue">
+                    <span class="material-symbols-outlined text-[16px] text-uch-blue">update</span>
+                    Actualización en tiempo real
+                </button>
             </div>
-        @empty
-            <p class="text-gray-500 col-span-full">No hay pedidos pendientes por ahora.</p>
-        @endforelse
+
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h1 class="font-rubik text-headline-lg-mobile lg:text-headline-lg tracking-tight text-uch-navy">Pedidos en vivo</h1>
+                    <p class="mt-0.5 text-body-md text-uch-muted">
+                        Gestiona las órdenes activas en cola de cocina y verifica el historial de entregas.
+                    </p>
+                </div>
+                <a href="/admin/pedidos/crear"
+                   class="inline-flex shrink-0 items-center gap-2 rounded-[10px] bg-uch-coral px-4 py-2.5 text-label-lg font-bold text-white shadow-sm transition-all hover:opacity-95 active:scale-95">
+                    <span class="material-symbols-outlined text-[20px]">add</span>
+                    + Nuevo ticket
+                </a>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+                @foreach ($filtros as $filtro)
+                    @php
+                        $filtroActivo = $estadoFiltro === $filtro['clave'];
+                        $urlFiltro = '/admin/pedidos?estado='.$filtro['clave'].($buscar !== '' ? '&buscar='.rawurlencode($buscar) : '');
+                    @endphp
+                    <a href="{{ $urlFiltro }}"
+                       class="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-label-md font-bold shadow-sm transition-all {{ $filtroActivo ? 'bg-uch-navy text-white' : 'bg-uch-surface text-uch-muted hover:bg-uch-border' }}">
+                        @if ($filtro['punto'])
+                            <span class="h-2.5 w-2.5 rounded-full {{ $filtro['punto'] }}"></span>
+                        @endif
+                        <span>{{ $filtro['texto'] }}</span>
+                        <span class="flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold {{ $filtroActivo ? 'bg-white/20 text-white' : 'bg-uch-bg text-uch-navy' }}">
+                            {{ (int) ($conteos[$filtro['clave']] ?? 0) }}
+                        </span>
+                    </a>
+                @endforeach
+
+                @if ($buscar !== '')
+                    <span class="inline-flex items-center gap-1 rounded-full bg-uch-cyan/15 px-3 py-1.5 text-label-md font-semibold text-[#0060A9]">
+                        <span class="material-symbols-outlined text-[14px]">search</span>
+                        Resultados para "{{ $buscar }}"
+                        <a href="/admin/pedidos" class="font-bold underline">Limpiar</a>
+                    </span>
+                @endif
+            </div>
+        </section>
+
+        <!-- TARJETAS DE PEDIDOS EN CURSO -->
+        <section class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3" aria-label="Pedidos activos">
+            @forelse ($pedidos as $pedido)
+                @php
+                    $estilo = $estilosEstado[$pedido->estado] ?? $estilosEstado['pendiente'];
+                    $accion = $acciones[$pedido->estado] ?? null;
+                @endphp
+                <article class="pedido-card relative flex flex-col overflow-hidden rounded-card bg-uch-surface shadow-uch-card">
+                    <div class="h-1 w-full {{ $estilo['barra'] }}"></div>
+
+                    <div class="flex grow flex-col gap-4 p-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <h2 class="font-rubik text-headline-sm text-uch-navy">
+                                    Pedido #{{ str_pad((string) $pedido->id, 3, '0', STR_PAD_LEFT) }}
+                                </h2>
+                                <p class="mt-0.5 flex items-center gap-1 text-body-sm text-uch-muted">
+                                    <span class="material-symbols-outlined text-[15px]">person</span>
+                                    <span class="truncate">{{ $pedido->cliente->name ?? 'Cliente en mostrador' }}</span>
+                                    <span aria-hidden="true">·</span>
+                                    <span class="whitespace-nowrap">{{ $pedido->created_at->diffForHumans() }}</span>
+                                </p>
+                            </div>
+                            <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold {{ $estilo['etiqueta'] }}">
+                                <span class="h-2 w-2 rounded-full {{ $estilo['punto'] }} {{ $pedido->estado === 'pendiente' ? 'animate-pulse' : '' }}"></span>
+                                {{ $estilo['texto'] }}
+                            </span>
+                        </div>
+
+                        <div class="flex flex-col gap-3">
+                            @foreach ($pedido->detalles as $detalle)
+                                @if ($detalle->tipo_item === 'menu')
+                                    <div class="relative overflow-hidden rounded-lg bg-uch-bg p-3">
+                                        <div class="absolute inset-y-0 left-0 w-1 {{ $estilo['barra'] }}"></div>
+                                        <div class="pl-2">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <span class="font-rubik text-body-md font-bold text-uch-navy">
+                                                    {{ $detalle->cantidad }}x {{ $detalle->menu->titulo ?? 'Menú del día' }}
+                                                </span>
+                                                <span class="whitespace-nowrap font-rubik text-body-md text-uch-navy">
+                                                    S/ {{ number_format((float) ($detalle->precio_unitario * $detalle->cantidad), 2) }}
+                                                </span>
+                                            </div>
+                                            <ul class="mt-1.5 space-y-1 text-body-sm text-uch-muted">
+                                                @foreach (['Entrada' => $detalle->entrada?->nombre, 'Fondo' => $detalle->fondo?->nombre, 'Refresco' => $detalle->refresco?->nombre] as $etiqueta => $nombre)
+                                                    @if ($nombre)
+                                                        <li class="flex items-start gap-1.5">
+                                                            <span class="text-uch-blue text-[14px] leading-none">•</span>
+                                                            <span><strong class="font-semibold text-uch-text">{{ $etiqueta }}:</strong> {{ $nombre }}</span>
+                                                        </li>
+                                                    @endif
+                                                @endforeach
+                                                @if (! $detalle->entrada && ! $detalle->fondo && ! $detalle->refresco && $detalle->detalle_menu)
+                                                    <li>{{ $detalle->detalle_menu }}</li>
+                                                @endif
+                                            </ul>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="flex items-center justify-between gap-2 px-1 text-body-sm text-uch-text">
+                                        <span class="min-w-0 truncate">{{ $detalle->cantidad }}x {{ $detalle->producto->nombre ?? 'Producto' }}</span>
+                                        <span class="shrink-0 text-label-lg font-semibold">
+                                            S/ {{ number_format((float) ($detalle->precio_unitario * $detalle->cantidad), 2) }}
+                                        </span>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="mt-auto flex flex-col gap-3 bg-uch-bg p-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="font-rubik text-headline-sm font-bold text-uch-navy">
+                                Total: S/ {{ number_format((float) $pedido->total, 2) }}
+                            </span>
+                            @if ($pedido->pagado)
+                                <span class="inline-flex max-w-[190px] items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-label-md font-semibold text-emerald-700" title="{{ $pedido->metodo_pago }}">
+                                    <span class="material-symbols-outlined text-[14px]">check</span>
+                                    <span class="truncate">Pagado · {{ $pedido->metodo_pago }}</span>
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1 rounded-full bg-uch-amber/15 px-2.5 py-0.5 text-label-md font-semibold text-[#B45309]">
+                                    <span class="material-symbols-outlined text-[14px]">schedule</span>
+                                    Pendiente de cobro
+                                </span>
+                            @endif
+                        </div>
+
+                        <div class="flex flex-col gap-2 sm:flex-row">
+                            @if (! $pedido->pagado)
+                                <form method="POST" action="/admin/pedidos/{{ $pedido->id }}/pagar" class="sm:flex-1">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit"
+                                            class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-uch-surface px-3 py-2.5 text-label-md font-bold text-uch-navy shadow-sm transition-colors hover:bg-uch-border">
+                                        <span class="material-symbols-outlined text-[16px]">payments</span>
+                                        Cobrar en caja
+                                    </button>
+                                </form>
+                            @endif
+                            @if ($accion)
+                                <form method="POST" action="/admin/pedidos/{{ $pedido->id }}/estado" class="{{ $pedido->pagado ? 'w-full' : 'sm:flex-1' }}">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="estado" value="{{ $accion['estado'] }}">
+                                    <button type="submit"
+                                            class="inline-flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-label-lg font-bold transition-colors active:scale-[0.99] {{ $accion['clase'] }}">
+                                        <span class="material-symbols-outlined text-[18px]">{{ $accion['icono'] }}</span>
+                                        <span>{{ $accion['texto'] }}</span>
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    </div>
+                </article>
+            @empty
+                <div class="col-span-full rounded-card bg-uch-surface p-10 text-center shadow-uch-card">
+                    <span class="material-symbols-outlined text-[34px] text-uch-muted">room_service</span>
+                    <p class="mt-2 text-body-md font-semibold text-uch-navy">No hay pedidos activos con este filtro.</p>
+                    <p class="mt-1 text-body-sm text-uch-muted">Los nuevos tickets aparecerán aquí automáticamente.</p>
+                </div>
+            @endforelse
+        </section>
+
+        <!-- HISTORIAL DE PEDIDOS -->
+        <section class="overflow-hidden rounded-card bg-uch-surface shadow-uch-card">
+            <div class="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between lg:p-5">
+                <div>
+                    <h2 class="font-rubik text-headline-sm text-uch-navy">Historial de pedidos</h2>
+                    <p class="mt-0.5 text-body-sm text-uch-muted">
+                        Órdenes entregadas y verificadas durante la jornada.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <form method="GET" action="/admin/pedidos" class="min-w-[220px] flex-1">
+                        @if ($estadoFiltro !== 'todos')
+                            <input type="hidden" name="estado" value="{{ $estadoFiltro }}">
+                        @endif
+                        @if ($buscar !== '')
+                            <input type="hidden" name="buscar" value="{{ $buscar }}">
+                        @endif
+                        <input type="hidden" name="fecha" value="{{ $fechaHistorial }}">
+                        <div class="relative flex items-center">
+                            <span class="material-symbols-outlined pointer-events-none absolute left-3 text-[18px] text-uch-muted">search</span>
+                            <input type="search" name="historial" value="{{ $historialBuscar }}"
+                                   placeholder="Buscar # ticket o cliente..."
+                                   aria-label="Buscar en el historial de pedidos"
+                                   class="w-full rounded-full border-0 bg-uch-bg py-1.5 pl-9 pr-3 text-body-sm text-uch-text placeholder:text-uch-muted focus:ring-1 focus:ring-uch-blue">
+                        </div>
+                    </form>
+
+                    <form method="GET" action="/admin/pedidos"
+                          class="inline-flex items-center gap-1.5 rounded-full bg-uch-bg px-3 py-1 text-label-md font-bold text-uch-navy">
+                        @if ($estadoFiltro !== 'todos')
+                            <input type="hidden" name="estado" value="{{ $estadoFiltro }}">
+                        @endif
+                        @if ($buscar !== '')
+                            <input type="hidden" name="buscar" value="{{ $buscar }}">
+                        @endif
+                        @if ($historialBuscar !== '')
+                            <input type="hidden" name="historial" value="{{ $historialBuscar }}">
+                        @endif
+                        <span class="material-symbols-outlined text-[16px] text-uch-blue">calendar_today</span>
+                        <input type="date" name="fecha" value="{{ $fechaHistorial }}" onchange="this.form.submit()"
+                               aria-label="Fecha del historial"
+                               class="w-[132px] border-0 bg-transparent p-0 text-label-md font-bold text-uch-navy focus:ring-0">
+                    </form>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse text-left text-body-md">
+                    <thead>
+                        <tr class="bg-uch-bg text-label-lg text-uch-navy">
+                            <th class="px-4 py-3 font-bold">Ticket</th>
+                            <th class="px-4 py-3 font-bold">Cliente</th>
+                            <th class="px-4 py-3 font-bold">Resumen del pedido</th>
+                            <th class="px-4 py-3 font-bold">Método de pago</th>
+                            <th class="px-4 py-3 font-bold">Total</th>
+                            <th class="px-4 py-3 font-bold">Estado</th>
+                            <th class="px-4 py-3 font-bold">Hora entrega</th>
+                            <th class="px-4 py-3 text-right font-bold">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-uch-border">
+                        @forelse ($historial as $pedido)
+                            @php $estiloHistorial = $estilosEstado[$pedido->estado] ?? $estilosEstado['entregado']; @endphp
+                            <tr class="transition-colors hover:bg-uch-bg">
+                                <td class="px-4 py-3.5 font-rubik text-label-lg font-bold text-uch-navy">
+                                    #{{ str_pad((string) $pedido->id, 3, '0', STR_PAD_LEFT) }}
+                                </td>
+                                <td class="px-4 py-3.5">
+                                    <div class="flex flex-col">
+                                        <span class="text-label-lg font-semibold text-uch-text">{{ $pedido->cliente->name ?? 'Mostrador' }}</span>
+                                        <span class="text-body-sm text-uch-muted">
+                                            {{ $pedido->cliente?->rol === 'cliente' ? 'Estudiante' : ($pedido->cliente?->rol ?? 'Mostrador') }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="max-w-[280px] px-4 py-3.5 text-body-sm text-uch-text">
+                                    <span class="block truncate" title="{{ $pedido->resumen }}">{{ $pedido->resumen }}</span>
+                                </td>
+                                <td class="px-4 py-3.5">
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-uch-bg px-2.5 py-1 text-label-md text-uch-muted">
+                                        <span class="material-symbols-outlined text-[14px] text-uch-blue">payments</span>
+                                        {{ $pedido->metodo_pago ?: 'Efectivo' }}
+                                    </span>
+                                </td>
+                                <td class="whitespace-nowrap px-4 py-3.5 font-rubik text-body-md font-bold text-uch-navy">
+                                    S/ {{ number_format((float) $pedido->total, 2) }}
+                                </td>
+                                <td class="px-4 py-3.5">
+                                    <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-label-md font-bold {{ $estiloHistorial['etiqueta'] }}">
+                                        <span class="material-symbols-outlined text-[14px]">done</span>
+                                        {{ $estiloHistorial['texto'] }}
+                                    </span>
+                                </td>
+                                <td class="whitespace-nowrap px-4 py-3.5 text-body-sm text-uch-muted">
+                                    {{ $pedido->updated_at->format('h:i a') }}
+                                </td>
+                                <td class="px-4 py-3.5 text-right">
+                                    <a href="/admin/pedidos/{{ $pedido->id }}"
+                                       class="inline-flex items-center gap-1 rounded-md px-3 py-1 text-label-md font-bold text-uch-blue transition-colors hover:bg-uch-bg">
+                                        Ver detalle
+                                        <span class="material-symbols-outlined text-[16px]">visibility</span>
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="px-4 py-10 text-center text-body-sm text-uch-muted">
+                                    No hay pedidos finalizados para la fecha seleccionada.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex flex-col gap-3 bg-uch-bg px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <p class="text-body-sm text-uch-muted">
+                    Mostrando <strong class="text-uch-navy">{{ $historial->count() }}</strong> de
+                    <strong class="text-uch-navy">{{ $historial->total() }}</strong> pedidos finalizados
+                </p>
+                {{ $historial->links() }}
+            </div>
+        </section>
     </div>
 </x-layouts.app>

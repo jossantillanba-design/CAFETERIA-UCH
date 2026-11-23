@@ -6,12 +6,29 @@
             <div class="bg-red-100 text-red-800 p-3 rounded mb-4">{{ session('error') }}</div>
         @endif
 
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
+        @error('productos')
+            <div class="bg-red-100 text-red-800 p-3 rounded mb-4">{{ $message }}</div>
+        @enderror
+
+        <div x-show="items.length === 0" x-cloak class="bg-uch-surface rounded-card shadow-uch-card p-8 mb-6 text-center">
+            <span class="material-symbols-outlined text-uch-muted text-[40px]">shopping_bag</span>
+            <p class="font-rubik text-lg font-bold text-uch-navy mt-space-sm">Tu pedido está vacío</p>
+            <p class="text-body-md text-uch-muted mt-space-xs">Agrega productos desde el menú para continuar.</p>
+            <a href="/menu" class="inline-flex items-center gap-2 mt-space-md bg-uch-coral text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-uch-coral-dark transition-colors">
+                Volver al menú
+                <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </a>
+        </div>
+
+        <div x-show="items.length > 0" x-cloak class="bg-uch-surface rounded-card shadow-uch-card p-6 mb-6">
             <h2 class="font-bold text-lg mb-3">Resumen</h2>
             <template x-for="item in items" :key="item.id">
-                <div class="flex justify-between text-sm mb-2">
-                    <span x-text="item.cantidad + 'x ' + item.nombre"></span>
-                    <span x-text="'S/' + (item.precio * item.cantidad).toFixed(2)"></span>
+                <div class="flex justify-between gap-3 text-sm mb-2">
+                    <div class="min-w-0">
+                        <p class="font-semibold" x-text="item.cantidad + 'x ' + item.nombre"></p>
+                        <p class="text-xs text-uch-muted" x-text="item.detalle || ''"></p>
+                    </div>
+                    <span class="shrink-0" x-text="'S/' + (item.precio * item.cantidad).toFixed(2)"></span>
                 </div>
             </template>
             <div class="border-t mt-3 pt-3 flex justify-between font-bold">
@@ -20,7 +37,7 @@
             </div>
         </div>
 
-        <details class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-sm">
+        <details x-show="items.length > 0" x-cloak class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-sm">
             <summary class="font-semibold cursor-pointer">Datos de prueba</summary>
             <ul class="mt-3 space-y-1">
                 <li><b>Tarjeta aprobada:</b> 4111 1111 1111 1111</li>
@@ -33,13 +50,23 @@
             <p class="mt-2 text-gray-500">En tarjeta usa un vencimiento futuro (por ejemplo 12/30) y un CVV de 3 dígitos.</p>
         </details>
 
-        <form action="/checkout" method="POST" class="bg-white rounded-lg shadow p-6">
+        <form x-show="items.length > 0" x-cloak action="/checkout" method="POST" class="bg-white rounded-lg shadow p-6">
             @csrf
             <input type="hidden" name="metodo" :value="metodo">
             <template x-for="(item, index) in items" :key="item.id">
                 <div>
                     <input type="hidden" :name="'productos[' + index + '][id]'" :value="item.id">
+                    <input type="hidden" :name="'productos[' + index + '][tipo]'" :value="item.tipo || 'producto'">
                     <input type="hidden" :name="'productos[' + index + '][cantidad]'" :value="item.cantidad">
+                    <input type="hidden" :name="'productos[' + index + '][detalle]'" :value="item.detalle || ''">
+                    <template x-if="(item.tipo || 'producto') === 'menu'">
+                        <div>
+                            <input type="hidden" :name="'productos[' + index + '][menu_id]'" :value="item.menu_id">
+                            <input type="hidden" :name="'productos[' + index + '][opciones][entrada]'" :value="item.opciones.entrada">
+                            <input type="hidden" :name="'productos[' + index + '][opciones][fondo]'" :value="item.opciones.fondo">
+                            <input type="hidden" :name="'productos[' + index + '][opciones][refresco]'" :value="item.opciones.refresco">
+                        </div>
+                    </template>
                 </div>
             </template>
 
@@ -145,13 +172,26 @@
                 metodo: metodoInicial,
                 billetera: billeteraInicial,
                 init() {
-                    const guardado = localStorage.getItem('carrito_checkout');
-                    if (guardado) {
-                        this.items = JSON.parse(guardado);
+                    this.items = this.leerCarrito();
+
+                    if (this.items.length > 0) {
+                        localStorage.setItem('carrito_checkout', JSON.stringify(this.items));
                     }
-                    if (this.items.length === 0) {
-                        window.location.href = '/menu';
-                    }
+                },
+
+                leerCarrito() {
+                    const parse = (clave) => {
+                        try {
+                            const valor = JSON.parse(localStorage.getItem(clave) || '[]');
+                            return Array.isArray(valor) ? valor : [];
+                        } catch (error) {
+                            return [];
+                        }
+                    };
+
+                    const delCheckout = parse('carrito_checkout');
+
+                    return delCheckout.length > 0 ? delCheckout : parse('carrito');
                 },
                 total() {
                     return this.items.reduce((sum, i) => sum + (i.precio * i.cantidad), 0);
