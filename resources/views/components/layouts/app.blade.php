@@ -3,72 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'Cafetería UCH') }}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{ config('app.name', 'Cafetería UCH') }} · Comedor UCH</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/uch-isotipo.svg') }}">
+
+    <!-- Fuentes institucionales UCH: Rubik (títulos) y Open Sans (cuerpo) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Rubik:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-amber-50 text-gray-800">
-    <nav class="bg-blue-500 p-4" x-data="{ abierto: false }">
-        <div class="flex justify-between items-center">
-            <a href="/menu">
-              <img src="{{ asset('images/logo-uch.png') }}" alt="Cafetería UCH" class="h-9 sm:h-12 w-auto object-contain">
-            </a>
+@php
+    $esAdmin = request()->is('admin*')
+        && auth()->check()
+        && in_array(auth()->user()->rol, ['administrador', 'empleado'], true);
+@endphp
 
-            <button @click="abierto = !abierto" class="sm:hidden text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-            </button>
+<body class="min-h-screen flex flex-col bg-uch-bg font-sans text-uch-text antialiased">
+    @if ($esAdmin)
+        <x-admin-topbar />
+    @else
+        @include('layouts.navigation')
+    @endif
 
-            <div class="hidden sm:flex gap-6 text-white items-center">
-                <a href="/menu">Menú</a>
-                @auth
-                    @if (auth()->user()->rol === 'administrador')
-                        <a href="/admin/dashboard">Dashboard</a>
-                    @endif
-                    @if (auth()->user()->rol === 'administrador')
-                        <a href="/admin/productos">Admin</a>
-                    @endif
-                    @if (in_array(auth()->user()->rol, ['administrador', 'empleado']))
-                        <a href="/admin/pedidos">Pedidos</a>
-                    @endif
-                    @if (auth()->user()->rol === 'cliente')
-                        <a href="/mis-pedidos">Mis pedidos</a>
-                    @endif
-                    <a href="/logout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Cerrar sesión</a>
-                @else
-                    <a href="{{ route('login') }}">Iniciar sesión</a>
-                @endauth
-            </div>
-        </div>
-
-        <div x-show="abierto" x-cloak class="flex flex-col gap-3 mt-3 sm:hidden text-white">
-            <a href="/menu">Menú</a>
-            @auth
-                @if (auth()->user()->rol === 'administrador')
-                    <a href="/admin/dashboard">Dashboard</a>
-                @endif
-                @if (auth()->user()->rol === 'administrador')
-                    <a href="/admin/productos">Admin</a>
-                @endif
-                @if (in_array(auth()->user()->rol, ['administrador', 'empleado']))
-                    <a href="/admin/pedidos">Pedidos</a>
-                @endif
-                @if (auth()->user()->rol === 'cliente')
-                    <a href="/mis-pedidos">Mis pedidos</a>
-                @endif
-                <a href="/logout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Cerrar sesión</a>
-            @else
-                <a href="{{ route('login') }}">Iniciar sesión</a>
-            @endauth
-        </div>
-
-        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
-            @csrf
-        </form>
-    </nav>
-
-    <main class="max-w-5xl mx-auto p-4 sm:p-6">
+    <main class="flex-1 w-full {{ $esAdmin ? 'pt-16 pl-[76px] lg:pl-[248px]' : 'pt-16' }}">
         {{ $slot }}
     </main>
+
+    @stack('scripts')
 </body>
 </html>

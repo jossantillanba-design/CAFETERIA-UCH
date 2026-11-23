@@ -4,3 +4,153 @@
 
 [x-cloak] { display: none !important; }
 
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply bg-uch-bg font-sans text-uch-text antialiased;
+        overscroll-behavior: none;
+    }
+
+    h1, h2, h3, h4, h5 {
+        @apply font-rubik text-uch-navy;
+    }
+}
+
+@layer components {
+    /* Hero principal del catálogo del cliente */
+    .hero-principal {
+        background: linear-gradient(135deg, #1B3668 0%, #0066B3 60%, #00AEEF 100%);
+    }
+
+    /* Hero con degradado y franjas diagonales UCH */
+    .hero-uch {
+        position: relative;
+        overflow: hidden;
+        border-radius: 18px;
+        color: #FFFFFF;
+        background: linear-gradient(120deg, #1B3668 0%, #0066B3 60%, #00B4A6 100%);
+        box-shadow: 0 10px 25px rgba(0, 102, 179, 0.22);
+    }
+
+    .hero-uch::before {
+        content: "";
+        position: absolute;
+        top: -70px;
+        right: 18%;
+        width: 240px;
+        height: 240px;
+        border-radius: 9999px;
+        background: rgba(0, 174, 239, 0.2);
+        filter: blur(45px);
+        pointer-events: none;
+    }
+
+    .hero-uch::after {
+        content: "";
+        position: absolute;
+        top: -20%;
+        right: -40px;
+        width: 140px;
+        height: 150%;
+        background: linear-gradient(90deg, #00AEEF 0%, #00AEEF 50%, #E63946 50%, #E63946 100%);
+        transform: rotate(18deg);
+        opacity: 0.85;
+        pointer-events: none;
+    }
+
+    /* Entrada escalonada de tarjetas */
+    .card-menu {
+        animation: aparecerTarjeta 0.45s ease-out backwards;
+        transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+    }
+
+    .card-menu:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 14px 28px rgba(27, 54, 104, 0.14);
+    }
+
+    .pedido-card {
+        animation: aparecerTarjeta 0.45s ease-out backwards;
+        transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+    }
+
+    .pedido-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 28px rgba(27, 54, 104, 0.14);
+    }
+
+    .img-wrapper img {
+        transition: transform 0.4s ease;
+    }
+
+    .img-wrapper:hover img {
+        transform: scale(1.07);
+    }
+
+    /* Botón coral con pulso suave */
+    .btn-uch-pedir {
+        transition: all 0.2s ease;
+    }
+
+    .btn-uch-pedir:hover {
+        transform: scale(1.04);
+        box-shadow: 0 4px 12px rgba(230, 57, 70, 0.35);
+    }
+
+    .btn-uch-pedir:active {
+        transform: scale(0.95);
+    }
+
+    .btn-filtro-uch {
+        transition: all 0.25s ease;
+    }
+}
+
+@keyframes aparecerTarjeta {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@layer utilities {
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+@media print {
+    @page {
+        size: A4;
+        margin: 12mm;
+    }
+
+    body {
+        background: #FFFFFF !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    main {
+        padding: 0 !important;
+    }
+
+    .print-card {
+        border: 1px solid #DCE3EC;
+        box-shadow: none !important;
+    }
+}
