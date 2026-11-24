@@ -26,6 +26,11 @@
         $horaActual = (int) $hoy->format('G');
         $comedorAbierto = $hoy->dayOfWeek !== 0 && $horaActual >= 7 && $horaActual < 18;
     @endphp
+            $turno = match (true) {
+    $horaActual < 12 => 'Mañana',
+    $horaActual < 19 => 'Tarde',
+    default => 'Noche',
+};
 
     <script>
         window.productosMenu = @js($productosMenu);
