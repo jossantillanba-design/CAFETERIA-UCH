@@ -28,7 +28,7 @@ class ProductoController extends Controller
         $categorias = Categoria::activas()->get();
 
         $ordenMenus = ['universitario' => 0, 'ejecutivo' => 1, 'dieta' => 2];
-        $menus = MenuDia::with(['opciones.componente', 'imagenes'])
+        $menus = MenuDia::with(['opciones.componente'])
             ->activos()
             ->get()
             ->sortBy(fn (MenuDia $menu): int => $ordenMenus[$menu->tipo_menu] ?? 99)
@@ -85,20 +85,6 @@ class ProductoController extends Controller
                     ->all();
             }
 
-            // Carrusel: una imagen por plato principal habilitado, en el orden definido por el administrador.
-            $fondosHabilitados = $menu->opciones
-                ->filter(fn ($opcion): bool => $opcion->habilitado && $opcion->componente?->tiempo === 'fondo')
-                ->pluck('componente.nombre', 'componente_id');
-
-            $carrusel = $menu->imagenes
-                ->filter(fn ($imagen): bool => $fondosHabilitados->has($imagen->componente_id))
-                ->map(fn ($imagen): array => [
-                    'url' => $imagen->url,
-                    'nombre' => $fondosHabilitados[$imagen->componente_id],
-                ])
-                ->values()
-                ->all();
-
             return [
                 'id' => $menu->id,
                 'tipo' => $menu->tipo_menu,
@@ -108,7 +94,6 @@ class ProductoController extends Controller
                 'imagen' => $menu->imagen
                     ? '/'.ltrim($menu->imagen, '/')
                     : asset('images/productos/quinua.svg'),
-                'carrusel' => $carrusel,
                 'destacado' => (bool) $menu->destacado,
                 'esPrecioVariable' => (bool) $menu->es_precio_variable,
                 'precioBase' => (float) $menu->precio_base,
@@ -262,7 +247,6 @@ class ProductoController extends Controller
             'descripcion' => 'nullable|string',
             'alergenos' => 'nullable|string|max:150',
             'precio' => 'required|numeric|min:0',
-            'stock_actual' => 'required|integer|min:0',
             'stock_minimo' => 'required|integer|min:0',
             'imagen' => 'nullable|string|max:500',
             'imagen_archivo' => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -275,7 +259,6 @@ class ProductoController extends Controller
         unset($datos['imagen_archivo']);
 
         $imagenSubida = $this->guardarImagenProducto($request);
-        $stockAnterior = (int) $producto->stock_actual;
 
         $producto->update([
             ...$datos,
@@ -288,25 +271,6 @@ class ProductoController extends Controller
             'es_nuevo' => $request->boolean('es_nuevo'),
             'es_popular' => $request->boolean('es_popular'),
         ]);
-
-        // Si el stock cambió desde la edición, queda trazado en el historial de movimientos.
-        $diferencia = (int) $producto->stock_actual - $stockAnterior;
-
-        if ($diferencia !== 0) {
-            InventarioMovimiento::create([
-                'tipo_item' => InventarioMovimiento::TIPO_PRODUCTO,
-                'item_id' => $producto->id,
-                'operacion' => $diferencia > 0
-                    ? InventarioMovimiento::OPERACION_INGRESO
-                    : InventarioMovimiento::OPERACION_SALIDA,
-                'cantidad' => abs($diferencia),
-                'stock_anterior' => $stockAnterior,
-                'stock_nuevo' => (int) $producto->stock_actual,
-                'motivo_categoria' => 'Corrección',
-                'comentario' => 'Ajuste desde la edición del producto',
-                'usuario_id' => auth()->id(),
-            ]);
-        }
 
         return redirect('/admin/productos')->with('mensaje', 'Producto actualizado correctamente.');
     }

@@ -4,12 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\MenuComponente;
 use App\Models\MenuDia;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class MenuDiaController extends Controller
@@ -18,7 +15,7 @@ class MenuDiaController extends Controller
     {
         $orden = ['universitario' => 0, 'ejecutivo' => 1, 'dieta' => 2];
 
-        $menus = MenuDia::with(['opciones.componente', 'imagenes'])
+        $menus = MenuDia::with(['opciones.componente'])
             ->get()
             ->sortBy(fn (MenuDia $menu): int => $orden[$menu->tipo_menu] ?? 99)
             ->values();
@@ -99,46 +96,6 @@ class MenuDiaController extends Controller
         });
 
         return redirect('/admin/menus')->with('mensaje', 'Configuración de '.$menu->titulo.' guardada.');
-    }
-
-    /**
-     * Crea un componente nuevo desde la propia pantalla del menú y lo habilita en él.
-     * Un plato principal nuevo queda con 0 raciones hasta que el administrador las indique.
-     */
-    public function crearComponente(Request $request, MenuDia $menu): JsonResponse
-    {
-        $datos = $request->validate([
-            'tiempo' => ['required', Rule::in(['entrada', 'fondo', 'refresco'])],
-            'nombre' => [
-                'required', 'string', 'max:120',
-                Rule::unique('menu_componentes', 'nombre')
-                    ->where(fn (Builder $query): Builder => $query->where('tiempo', $request->input('tiempo'))),
-            ],
-        ], [
-            'nombre.unique' => 'Ese componente ya existe: búscalo en la lista de “Añadir”.',
-        ]);
-
-        $componente = DB::transaction(function () use ($menu, $datos): MenuComponente {
-            $componente = MenuComponente::create([
-                'nombre' => trim($datos['nombre']),
-                'tiempo' => $datos['tiempo'],
-                'activo_catalogo' => true,
-            ]);
-
-            $menu->opciones()->create([
-                'componente_id' => $componente->id,
-                'habilitado' => true,
-                'stock_raciones' => $datos['tiempo'] === 'fondo' ? 0 : null,
-                'precio_opcion' => null,
-            ]);
-
-            return $componente;
-        });
-
-        session()->flash('mensaje', '“'.$componente->nombre.'” se creó y se añadió a '.$menu->titulo.'.'
-            .($componente->tiempo === 'fondo' ? ' Indica sus raciones y guarda los cambios.' : ''));
-
-        return response()->json(['id' => $componente->id, 'nombre' => $componente->nombre], 201);
     }
 
     public function toggle(MenuDia $menu): RedirectResponse

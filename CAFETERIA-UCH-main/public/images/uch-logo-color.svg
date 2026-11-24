@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 200" width="260" height="68" role="img" aria-label="Logo Universidad de Ciencias y Humanidades">
+  <defs>
+    <clipPath id="uch-circle-color">
+      <circle cx="100" cy="100" r="92" />
+    </clipPath>
+  </defs>
+
+  
+  <g clip-path="url(#uch-circle-color)">
+    
+    <path fill="#1B3668" d="M 0,0 L 89,0 C 89,18 93,34 89,45 C 87,51 98,66 105,76 C 107,79 102,83 94,84 C 98,88 99,91 94,94 C 98,97 98,101 93,104 C 99,109 99,117 92,122 C 94,145 92,172 80,200 L 0,200 Z" />
+    
+    
+    <g fill="#00AEEF">
+      <polygon points="103,73 108,73 116,4 95,4" />
+      <polygon points="111,74 116,76 146,12 126,5" />
+      <polygon points="119,78 123,81 173,30 156,17" />
+      <polygon points="125,84 128,88 191,56 180,39" />
+      <polygon points="129,91 130,96 200,82 195,65" />
+      <polygon points="130,99 130,106 200,106 200,92" />
+    </g>
+
+    
+    <path fill="#0066B3" d="M 103,113 L 200,113 L 200,200 L 88,200 C 99,172 101,145 99,124 C 103,120 104,116 103,113 Z" />
+  </g>
+
+  
+  <g fill="#1B3668">
+    
+    <path d="M 216,44 H 239 V 118 C 239,131 246,137 255,137 C 264,137 270,131 270,118 V 44 H 293 V 119 C 293,145 278,158 255,158 C 231,158 216,145 216,119 Z" />
+    
+    <path d="M 381,64 L 362,75 C 358,68 353,65 345,65 H 335 C 327,65 324,70 324,80 V 122 C 324,132 327,137 335,137 H 345 C 353,137 358,134 362,127 L 381,138 C 374,151 362,158 345,158 H 333 C 312,158 301,145 301,122 V 80 C 301,57 312,44 333,44 H 345 C 362,44 374,51 381,64 Z" />
+    
+    <path d="M 395,44 H 418 V 89 H 450 V 44 H 473 V 158 H 450 V 110 H 418 V 158 H 395 Z" />
+  </g>
+
+  
+  <g fill="#1B3668" font-family="&#39;Rubik&#39;, &#39;Arial&#39;, sans-serif" font-weight="800">
+    <text x="495" y="72" font-size="25" letter-spacing="0.5">UNIVERSIDAD DE</text>
+    <text x="495" y="113" font-size="37" letter-spacing="0.5">CIENCIAS Y</text>
+    <text x="495" y="154" font-size="37" letter-spacing="0.5">HUMANIDADES</text>
+  </g>
+</svg>

@@ -2,7 +2,7 @@
     <x-admin-nav />
 
     <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
-         x-data="{ pestana: new URLSearchParams(location.search).get('tab') || '{{ $menus->first()?->tipo_menu ?? 'universitario' }}' }">
+         x-data="{ pestana: '{{ $menus->first()?->tipo_menu ?? 'universitario' }}' }">
         <x-flash-message />
 
         <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
@@ -69,27 +69,6 @@
                     'fondo' => ['2. Platos principales', 'Añadir plato principal', 'bg-uch-teal/15 text-uch-teal'],
                     'refresco' => ['3. Refrescos', 'Añadir refresco', 'bg-uch-cyan/15 text-[#0060A9]'],
                 ];
-
-                $etiquetasNuevo = [
-                    'entrada' => ['Añadir entrada nueva', 'Nombre de la nueva entrada'],
-                    'fondo' => ['Añadir plato principal nuevo', 'Nombre del nuevo plato principal'],
-                    'refresco' => ['Añadir bebida nueva', 'Nombre de la nueva bebida'],
-                ];
-
-                $fondosHabilitados = $menu->opciones
-                    ->filter(fn ($opcion): bool => $opcion->habilitado && $opcion->componente?->tiempo === 'fondo')
-                    ->map(fn ($opcion): array => ['id' => $opcion->componente_id, 'nombre' => $opcion->componente->nombre])
-                    ->values();
-
-                $idsFondos = $fondosHabilitados->pluck('id')->all();
-                $imagenesCarrusel = $menu->imagenes
-                    ->filter(fn ($imagen): bool => in_array($imagen->componente_id, $idsFondos, true))
-                    ->map(fn ($imagen): array => [
-                        'id' => $imagen->id,
-                        'componente_id' => $imagen->componente_id,
-                        'url' => $imagen->url,
-                    ])
-                    ->values();
 
                 $capacidadTotal = $menu->opciones->where('habilitado', true)->sum('stock_raciones');
             @endphp
@@ -199,37 +178,7 @@
                                      seleccionados: @js($estadoComponentes[$tiempo] ?? []),
                                      nombres: @js($nombresComponentes[$tiempo] ?? []),
                                      abierto: false,
-                                     expandido: {{ $tiempo === 'refresco' ? 'false' : 'true' }},
-                                     nuevoAbierto: false,
-                                     nuevoNombre: '',
-                                     errorNuevo: '',
-                                     guardandoNuevo: false,
-                                     async crear() {
-                                         const nombre = this.nuevoNombre.trim();
-                                         if (nombre === '') { this.errorNuevo = 'Escribe un nombre.'; return; }
-                                         this.guardandoNuevo = true;
-                                         this.errorNuevo = '';
-                                         try {
-                                             const respuesta = await fetch('/admin/menus/{{ $menu->id }}/componentes', {
-                                                 method: 'POST',
-                                                 headers: {
-                                                     'Content-Type': 'application/json',
-                                                     'Accept': 'application/json',
-                                                     'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
-                                                 },
-                                                 body: JSON.stringify({ tiempo: '{{ $tiempo }}', nombre })
-                                             });
-                                             if (respuesta.ok) {
-                                                 window.location.href = '/admin/menus?tab={{ $menu->tipo_menu }}';
-                                                 return;
-                                             }
-                                             const datos = await respuesta.json().catch(() => ({}));
-                                             this.errorNuevo = datos.errors?.nombre?.[0] ?? 'No se pudo crear. Inténtalo de nuevo.';
-                                         } catch (e) {
-                                             this.errorNuevo = 'Sin conexión. Inténtalo de nuevo.';
-                                         }
-                                         this.guardandoNuevo = false;
-                                     }
+                                     expandido: {{ $tiempo === 'refresco' ? 'false' : 'true' }}
                                  }"
                                  class="flex flex-col gap-3 rounded-card border border-uch-border bg-uch-surface p-4 shadow-uch-card">
                                 <div class="flex items-center justify-between gap-2 {{ $tiempo === 'fondo' ? 'border-b border-uch-border/70 pb-2' : '' }}">
@@ -271,30 +220,6 @@
                                                 @empty
                                                     <p class="px-2 py-1.5 text-body-sm text-uch-muted">No hay componentes de este tiempo.</p>
                                                 @endforelse
-
-                                                <div class="mt-1 border-t border-dashed border-uch-border pt-2">
-                                                    <button type="button" x-show="! nuevoAbierto"
-                                                            @click="nuevoAbierto = true; $nextTick(() => $refs.nuevoNombre.focus())"
-                                                            class="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-label-md font-bold text-uch-blue hover:bg-uch-bg">
-                                                        <span class="material-symbols-outlined text-[18px]">add_circle</span>
-                                                        {{ $etiquetasNuevo[$tiempo][0] }}
-                                                    </button>
-
-                                                    <div x-show="nuevoAbierto" x-cloak class="flex flex-col gap-2 px-1 pb-1">
-                                                        <input x-ref="nuevoNombre" x-model="nuevoNombre" type="text" maxlength="120"
-                                                               @keydown.enter.prevent="crear()"
-                                                               placeholder="{{ $etiquetasNuevo[$tiempo][1] }}"
-                                                               class="w-full rounded-lg border-uch-border bg-uch-surface px-3 py-2 text-body-sm text-uch-navy focus:border-uch-blue focus:ring-uch-blue">
-                                                        <p x-show="errorNuevo" x-text="errorNuevo" class="text-body-sm font-semibold text-uch-coral-dark"></p>
-                                                        <p class="text-body-sm text-uch-muted">Guarda antes tus cambios pendientes: al crear se recarga la página.</p>
-                                                        <div class="flex justify-end gap-2">
-                                                            <button type="button" @click="nuevoAbierto = false; errorNuevo = ''"
-                                                                    class="rounded-lg bg-uch-bg px-3 py-1.5 text-label-md font-semibold text-uch-navy hover:bg-uch-border">Cancelar</button>
-                                                            <button type="button" @click="crear()" :disabled="guardandoNuevo"
-                                                                    class="rounded-lg bg-uch-navy px-3 py-1.5 text-label-md font-semibold text-white hover:bg-uch-blue disabled:opacity-50">Crear y añadir</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -364,90 +289,6 @@
                             </div>
                         @endforeach
 
-                        {{-- 4. Imágenes del menú del día (carrusel): una por plato principal --}}
-                        <div x-data="carruselMenu(@js(['menuId' => $menu->id, 'fondos' => $fondosHabilitados, 'imagenes' => $imagenesCarrusel]))"
-                             class="flex flex-col gap-3 rounded-card border border-uch-border bg-uch-surface p-4 shadow-uch-card">
-                            <div class="flex flex-wrap items-center justify-between gap-2">
-                                <div class="flex items-center gap-2">
-                                    <h2 class="font-rubik text-title-dish text-uch-navy">4. Imágenes del menú del día (carrusel)</h2>
-                                    <span class="rounded-full bg-uch-blue/10 px-2.5 py-0.5 text-label-md font-bold text-uch-blue"
-                                          x-text="imagenes.length + ' de ' + fondos.length + ' con imagen'"></span>
-                                </div>
-                                <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-uch-blue px-3 py-1.5 text-label-md font-bold text-uch-blue hover:bg-uch-bg"
-                                       x-show="sinImagen.length > 0">
-                                    <span class="material-symbols-outlined text-[18px]">upload</span>
-                                    Subir varias
-                                    <input type="file" accept=".jpg,.jpeg,.png,.webp" multiple class="sr-only"
-                                           @change="subirVarias($event.target.files); $event.target.value = ''">
-                                </label>
-                            </div>
-
-                            <p class="text-body-sm text-uch-muted">
-                                Cada plato principal tiene su espacio: con 4 platos subes 4 imágenes, con 8 subes 8. Se muestran en el carrusel de la tarjeta de este menú, en el orden de abajo.
-                                Si añadiste platos nuevos, guarda los cambios para que aparezcan aquí.
-                            </p>
-
-                            <p x-show="error" x-text="error" x-cloak class="text-body-sm font-semibold text-uch-coral-dark"></p>
-
-                            <div x-show="fondos.length === 0" class="rounded-lg bg-uch-bg p-3 text-body-sm text-uch-muted">
-                                Primero habilita platos principales en el bloque 2 y guarda los cambios.
-                            </div>
-
-                            <div class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));">
-                                <template x-for="(imagen, indice) in imagenes" :key="imagen.id">
-                                    <div class="overflow-hidden rounded-xl border border-uch-border bg-uch-surface">
-                                        <div class="relative" style="aspect-ratio: 4 / 3;">
-                                            <img :src="imagen.url" :alt="nombrePlato(imagen.componente_id)" class="h-full w-full object-cover">
-                                            <span class="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-uch-navy text-label-md font-bold text-white" x-text="indice + 1"></span>
-                                        </div>
-                                        <p class="truncate px-2.5 pt-2 text-label-lg font-bold text-uch-navy" x-text="nombrePlato(imagen.componente_id)"></p>
-                                        <div class="flex items-center justify-between px-2 py-1.5">
-                                            <div class="flex">
-                                                <button type="button" @click="mover(indice, -1)" :disabled="indice === 0" title="Mover antes"
-                                                        class="flex h-7 w-7 items-center justify-center rounded text-uch-muted hover:bg-uch-bg hover:text-uch-blue disabled:opacity-30">
-                                                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-                                                </button>
-                                                <button type="button" @click="mover(indice, 1)" :disabled="indice === imagenes.length - 1" title="Mover después"
-                                                        class="flex h-7 w-7 items-center justify-center rounded text-uch-muted hover:bg-uch-bg hover:text-uch-blue disabled:opacity-30">
-                                                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-                                                </button>
-                                            </div>
-                                            <div class="flex">
-                                                <label title="Cambiar imagen" class="flex h-7 w-7 cursor-pointer items-center justify-center rounded text-uch-muted hover:bg-uch-bg hover:text-uch-blue">
-                                                    <span class="material-symbols-outlined text-[18px]">edit</span>
-                                                    <input type="file" accept=".jpg,.jpeg,.png,.webp" class="sr-only"
-                                                           @change="subir(imagen.componente_id, $event.target.files[0]); $event.target.value = ''">
-                                                </label>
-                                                <button type="button" @click="quitar(imagen)" title="Eliminar imagen"
-                                                        class="flex h-7 w-7 items-center justify-center rounded text-uch-muted hover:bg-uch-bg hover:text-uch-coral">
-                                                    <span class="material-symbols-outlined text-[18px]">delete</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
-
-                                <template x-for="plato in sinImagen" :key="'vacio-' + plato.id">
-                                    <label class="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-uch-border bg-uch-bg p-4 text-center text-uch-muted hover:border-uch-blue hover:text-uch-blue"
-                                           style="min-height: 150px;">
-                                        <span class="material-symbols-outlined text-[30px]">add_photo_alternate</span>
-                                        <span class="text-label-lg font-bold text-uch-navy" x-text="plato.nombre"></span>
-                                        <span class="text-body-sm">Subir imagen</span>
-                                        <input type="file" accept=".jpg,.jpeg,.png,.webp" class="sr-only"
-                                               @change="subir(plato.id, $event.target.files[0]); $event.target.value = ''">
-                                    </label>
-                                </template>
-                            </div>
-
-                            <div x-show="sinImagen.length > 0 && fondos.length > 0" x-cloak
-                                 class="flex items-start gap-2 rounded-lg bg-uch-amber/15 p-3 text-body-sm text-[#B45309]">
-                                <span class="material-symbols-outlined text-[18px]">warning</span>
-                                <span>Faltan imágenes de: <strong x-text="sinImagen.map((plato) => plato.nombre).join(', ')"></strong>. En el catálogo esos platos no saldrán en el carrusel.</span>
-                            </div>
-
-                            <p class="text-body-sm text-uch-muted">Formatos JPG, PNG o WebP · máximo 2 MB por imagen.</p>
-                        </div>
-
                         <div class="flex justify-end">
                             <a href="/menu" target="_blank"
                                class="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-body-sm text-uch-muted hover:text-uch-blue transition-colors">
@@ -460,120 +301,4 @@
             </section>
         @endforeach
     </div>
-
-    @push('scripts')
-        <script>
-            function carruselMenu(config) {
-                const tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp'];
-                const cabeceras = () => ({
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
-                });
-
-                return {
-                    menuId: config.menuId,
-                    fondos: config.fondos,
-                    imagenes: config.imagenes,
-                    error: '',
-
-                    get sinImagen() {
-                        const conImagen = this.imagenes.map((imagen) => imagen.componente_id);
-                        return this.fondos.filter((plato) => ! conImagen.includes(plato.id));
-                    },
-
-                    nombrePlato(componenteId) {
-                        return this.fondos.find((plato) => plato.id === componenteId)?.nombre ?? '';
-                    },
-
-                    validar(archivo) {
-                        if (! tiposPermitidos.includes(archivo.type)) {
-                            return 'El archivo “' + archivo.name + '” no es JPG, PNG ni WebP.';
-                        }
-                        if (archivo.size > 2 * 1024 * 1024) {
-                            return 'La imagen “' + archivo.name + '” pesa más de 2 MB.';
-                        }
-                        return '';
-                    },
-
-                    async subir(componenteId, archivo) {
-                        if (! archivo) { return; }
-                        this.error = this.validar(archivo);
-                        if (this.error) { return; }
-
-                        const datos = new FormData();
-                        datos.append('componente_id', componenteId);
-                        datos.append('imagen', archivo);
-
-                        try {
-                            const respuesta = await fetch('/admin/menus/' + this.menuId + '/imagenes', {
-                                method: 'POST', headers: cabeceras(), body: datos,
-                            });
-                            const json = await respuesta.json().catch(() => ({}));
-
-                            if (! respuesta.ok) {
-                                this.error = Object.values(json.errors ?? {})[0]?.[0] ?? 'No se pudo subir la imagen.';
-                                return;
-                            }
-
-                            const existente = this.imagenes.findIndex((imagen) => imagen.componente_id === json.componente_id);
-                            if (existente >= 0) {
-                                this.imagenes[existente] = json;
-                            } else {
-                                this.imagenes.push(json);
-                            }
-                        } catch (e) {
-                            this.error = 'Sin conexión. Inténtalo de nuevo.';
-                        }
-                    },
-
-                    async subirVarias(archivos) {
-                        this.error = '';
-                        const libres = [...this.sinImagen];
-
-                        for (const archivo of archivos) {
-                            const motivo = this.validar(archivo);
-                            if (motivo) { this.error = motivo; continue; }
-
-                            const plato = libres.shift();
-                            if (! plato) {
-                                this.error = 'Hay más imágenes que platos sin imagen: añade más platos principales para subir el resto.';
-                                break;
-                            }
-
-                            await this.subir(plato.id, archivo);
-                        }
-                    },
-
-                    async quitar(imagen) {
-                        if (! confirm('¿Eliminar la imagen de ' + this.nombrePlato(imagen.componente_id) + '?')) { return; }
-
-                        const respuesta = await fetch('/admin/menus/imagenes/' + imagen.id, {
-                            method: 'DELETE', headers: cabeceras(),
-                        });
-
-                        if (respuesta.ok) {
-                            this.imagenes = this.imagenes.filter((otra) => otra.id !== imagen.id);
-                        } else {
-                            this.error = 'No se pudo eliminar la imagen.';
-                        }
-                    },
-
-                    async mover(indice, delta) {
-                        const destino = indice + delta;
-                        if (destino < 0 || destino >= this.imagenes.length) { return; }
-
-                        const copia = [...this.imagenes];
-                        [copia[indice], copia[destino]] = [copia[destino], copia[indice]];
-                        this.imagenes = copia;
-
-                        await fetch('/admin/menus/' + this.menuId + '/imagenes/orden', {
-                            method: 'POST',
-                            headers: { ...cabeceras(), 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ orden: copia.map((imagen) => imagen.componente_id) }),
-                        });
-                    },
-                };
-            }
-        </script>
-    @endpush
 </x-layouts.app>

@@ -98,7 +98,7 @@
 
             <p class="text-body-md text-uch-muted">
                 @if ($esEdicion)
-                    Foto, categoría, precio, stock y etiquetas del producto.
+                    Foto, precio y etiquetas del producto.
                 @else
                     Foto, precio, stock inicial y etiquetas del producto.
                 @endif
@@ -109,7 +109,6 @@
              x-data="{
                  imagenPreview: @js($imagenActual),
                  precio: {{ is_numeric($precio) ? (float) $precio : 0 }},
-                 categoria: @js((string) $categoriaId),
                  caracteres: {{ mb_strlen($descripcion) }},
                  alergenos: @js($alergenosIniciales),
                  nuevoAlergeno: '',
@@ -256,34 +255,25 @@
                                         <p class="text-body-sm font-semibold text-uch-coral-dark">{{ $message }}</p>
                                     @enderror
                                 </div>
-                            </div>
 
-                            <div class="flex flex-col gap-1.5">
-                                <label class="flex items-center justify-between text-label-lg text-uch-navy">
-                                    <span>Categoría <span class="text-uch-coral">*</span></span>
-                                    <span class="text-body-sm font-normal text-uch-muted">Elige una opción</span>
-                                </label>
-                                <input type="hidden" name="categoria_id" :value="categoria" required>
-                                <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4" role="radiogroup" aria-label="Categoría">
-                                    @foreach ($categorias as $categoria)
-                                        <button type="button" role="radio"
-                                                :aria-checked="categoria === '{{ $categoria->id }}' ? 'true' : 'false'"
-                                                @click="categoria = '{{ $categoria->id }}'"
-                                                :class="categoria === '{{ $categoria->id }}'
-                                                    ? 'border-uch-blue bg-uch-blue/10 text-uch-blue'
-                                                    : 'border-uch-border bg-uch-surface text-uch-navy hover:border-uch-blue'"
-                                                class="flex items-center gap-2 rounded-[10px] border-2 px-3 py-2.5 text-left text-label-lg font-semibold transition-colors">
-                                            <span class="min-w-0 flex-1 truncate">{{ $categoria->nombre }}</span>
-                                            <span x-show="categoria === '{{ $categoria->id }}'" x-cloak class="material-symbols-outlined text-[18px]">check_circle</span>
-                                        </button>
-                                    @endforeach
+                                <div class="flex flex-col gap-1.5">
+                                    <label for="prod-cat" class="text-label-lg text-uch-navy">
+                                        Categoría <span class="text-uch-coral">*</span>
+                                    </label>
+                                    <div class="relative flex items-center">
+                                        <select id="prod-cat" name="categoria_id" required
+                                                class="w-full cursor-pointer appearance-none rounded-lg bg-uch-surface py-2.5 pl-3.5 pr-9 text-body-md text-uch-text shadow-sm focus:outline-none focus:ring-2 focus:ring-uch-blue/30">
+                                            <option value="" disabled {{ $categoriaId === '' ? 'selected' : '' }}>Selecciona una categoría</option>
+                                            @foreach ($categorias as $categoria)
+                                                <option value="{{ $categoria->id }}" @selected((string) $categoriaId === (string) $categoria->id)>{{ $categoria->nombre }}</option>
+                                            @endforeach
+                                        </select>
+                                        <span class="material-symbols-outlined pointer-events-none absolute right-3 text-[20px] text-uch-muted">expand_more</span>
+                                    </div>
+                                    @error('categoria_id')
+                                        <p class="text-body-sm font-semibold text-uch-coral-dark">{{ $message }}</p>
+                                    @enderror
                                 </div>
-                                @if ($categorias->isEmpty())
-                                    <p class="text-body-sm text-uch-muted">No hay categorías activas. Crea una en Categorías.</p>
-                                @endif
-                                @error('categoria_id')
-                                    <p class="text-body-sm font-semibold text-uch-coral-dark">{{ $message }}</p>
-                                @enderror
                             </div>
 
                             <div class="grid grid-cols-1 gap-space-md sm:grid-cols-3">
@@ -314,13 +304,19 @@
                                         <span class="text-body-sm text-uch-muted">Unidades</span>
                                     </div>
                                     <div class="relative flex items-center">
-                                        <span class="material-symbols-outlined pointer-events-none absolute left-3 text-[18px] text-uch-muted">inventory_2</span>
-                                        <input id="prod-stock" name="stock_actual" type="number" min="0" required value="{{ $stockActual }}"
-                                               class="w-full rounded-lg bg-uch-surface py-2.5 pl-9 pr-3.5 text-body-md text-uch-text shadow-sm focus:outline-none focus:ring-2 focus:ring-uch-blue/30">
+                                        @if ($esEdicion)
+                                            <input id="prod-stock" type="text" value="{{ $stockActual }} u." disabled
+                                                   class="w-full rounded-lg bg-uch-bg py-2.5 pl-9 pr-3.5 text-body-md text-uch-muted">
+                                            <a href="/admin/inventario" title="Ajustar en inventario"
+                                               class="absolute left-2.5 text-uch-blue">
+                                                <span class="material-symbols-outlined text-[18px]">tune</span>
+                                            </a>
+                                        @else
+                                            <span class="material-symbols-outlined pointer-events-none absolute left-3 text-[18px] text-uch-muted">inventory_2</span>
+                                            <input id="prod-stock" name="stock_actual" type="number" min="0" required value="{{ $stockActual }}"
+                                                   class="w-full rounded-lg bg-uch-surface py-2.5 pl-9 pr-3.5 text-body-md text-uch-text shadow-sm focus:outline-none focus:ring-2 focus:ring-uch-blue/30">
+                                        @endif
                                     </div>
-                                    @if ($esEdicion)
-                                        <p class="text-body-sm text-uch-muted">Si lo cambias, queda registrado en el historial de movimientos.</p>
-                                    @endif
                                     @error('stock_actual')
                                         <p class="text-body-sm font-semibold text-uch-coral-dark">{{ $message }}</p>
                                     @enderror
@@ -393,7 +389,7 @@
                                     <p class="text-label-md font-bold text-uch-navy">Control de inventario</p>
                                     <p class="text-body-sm text-uch-muted">
                                         @if ($esEdicion)
-                                            Si cambias el stock, el ajuste queda registrado en el
+                                            El stock se ajusta en Inventario.
                                         @else
                                             El stock inicial queda registrado en el
                                         @endif

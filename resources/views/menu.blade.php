@@ -96,38 +96,7 @@
                 <div class="hasp-menus-grid">
                     <template x-for="menu in menusVisibles" :key="menu.id">
                         <article class="hasp-menu-card" :class="'hasp-card-' + tema(menu.tipo).clase">
-                            {{-- Carrusel de platos principales (Alpine.js). Sin imágenes cargadas, se mantiene la imagen única de siempre. --}}
-                            <template x-if="menu.carrusel.length === 0">
-                                <img class="hasp-menu-card-img" :src="menu.imagen" :alt="menu.titulo" loading="lazy">
-                            </template>
-                            <template x-if="menu.carrusel.length > 0">
-                                <div class="hasp-carrusel" x-data="{ actual: 0, total: menu.carrusel.length, timer: null, touchX: null,
-                                         ir(n) { this.actual = (n + this.total) % this.total; },
-                                         iniciar() { if (this.total > 1) { this.timer = setInterval(() => this.ir(this.actual + 1), 4500); } },
-                                         detener() { clearInterval(this.timer); } }"
-                                     x-init="iniciar()" @mouseenter="detener()" @mouseleave="iniciar()"
-                                     @touchstart.passive="touchX = $event.touches[0].clientX"
-                                     @touchend.passive="if (touchX !== null && Math.abs($event.changedTouches[0].clientX - touchX) > 40) { ir(actual + ($event.changedTouches[0].clientX < touchX ? 1 : -1)); } touchX = null"
-                                     role="region" :aria-label="'Platos de ' + menu.titulo">
-                                    <div class="hasp-carrusel-pista" :style="'transform: translateX(-' + (actual * 100) + '%)'">
-                                        <template x-for="foto in menu.carrusel" :key="foto.url">
-                                            <img class="hasp-carrusel-img" :src="foto.url" :alt="foto.nombre" loading="lazy">
-                                        </template>
-                                    </div>
-                                    <span class="hasp-carrusel-nombre" x-text="menu.carrusel[actual].nombre"></span>
-                                    <template x-if="total > 1">
-                                        <div>
-                                            <button type="button" class="hasp-carrusel-btn" style="left: 8px;" aria-label="Anterior" @click="ir(actual - 1)">‹</button>
-                                            <button type="button" class="hasp-carrusel-btn" style="right: 8px;" aria-label="Siguiente" @click="ir(actual + 1)">›</button>
-                                            <div class="hasp-carrusel-puntos">
-                                                <template x-for="n in total" :key="n">
-                                                    <button type="button" :class="{ 'hasp-activo': actual === n - 1 }" :aria-label="'Ir a la imagen ' + n" @click="ir(n - 1)"></button>
-                                                </template>
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-                            </template>
+                            <img class="hasp-menu-card-img" :src="menu.imagen" :alt="menu.titulo" loading="lazy">
                             <div class="hasp-menu-card-header">
                                 <span class="hasp-menu-type-badge" :class="'hasp-badge-' + tema(menu.tipo).badge"
                                       x-text="tema(menu.tipo).icono + ' ' + tema(menu.tipo).nombre"></span>

@@ -14,7 +14,6 @@ use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\InventarioMovimientoController;
 use App\Http\Controllers\MenuComponenteController;
 use App\Http\Controllers\MenuDiaController;
-use App\Http\Controllers\MenuImagenController;
 use App\Http\Controllers\PedidoClienteController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\PedidoHistorialController;
@@ -63,10 +62,6 @@ Route::middleware(['auth', 'rol:administrador'])->group(function () {
     Route::get('/admin/menus', [MenuDiaController::class, 'index']);
     Route::put('/admin/menus/{menu}', [MenuDiaController::class, 'update']);
     Route::patch('/admin/menus/{menu}/toggle', [MenuDiaController::class, 'toggle']);
-    Route::post('/admin/menus/{menu}/componentes', [MenuDiaController::class, 'crearComponente']);
-    Route::post('/admin/menus/{menu}/imagenes', [MenuImagenController::class, 'store']);
-    Route::post('/admin/menus/{menu}/imagenes/orden', [MenuImagenController::class, 'reordenar']);
-    Route::delete('/admin/menus/imagenes/{imagen}', [MenuImagenController::class, 'destroy']);
 
     Route::get('/admin/componentes', [MenuComponenteController::class, 'index']);
     Route::get('/admin/componentes/crear', [MenuComponenteController::class, 'create']);
