@@ -31,11 +31,6 @@
             default => 'Noche',
         };
     @endphp
-            $turno = match (true) {
-    $horaActual < 12 => 'Mañana',
-    $horaActual < 19 => 'Tarde',
-    default => 'Noche',
-};
 
     <script>
         window.productosMenu = @js($productosMenu);
