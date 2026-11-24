@@ -46,15 +46,13 @@
 
         <!-- HERO -->
         <section class="hasp-hero">
-            @if ($heroImg)
-                <div class="hasp-hero-bg-img" style="background-image: url('{{ $heroImg }}')"></div>
-            @endif
+            <div class="hasp-hero-bg-img" style="opacity: 1; background-image: linear-gradient(rgba(28,28,28,.68), rgba(28,28,28,.68)), url('/images/hero-comedor.jpg')"></div>
             <div class="hasp-hero-inner">
                 <div class="hasp-hero-pill">
                     <span class="hasp-dot"></span>
                     {{ $comedorAbierto ? 'Menú disponible hoy' : 'Comedor cerrado ahora' }} · {{ $fechaTexto }}
                 </div>
-                <h1>Bienvenido a<br><em>Grupo HASP Service</em></h1>
+                <h1>Bienvenido a<br><em>GRUPO HASP SERVICE</em></h1>
                 <p>Pide tu almuerzo en línea y recógelo en caja sin hacer cola. Menú universitario, ejecutivo y light cada día.</p>
                 <div class="hasp-hero-cta">
                     <a href="#menus-del-dia" class="hasp-btn-primary">Ver menú de hoy</a>
@@ -62,8 +60,8 @@
                 </div>
                 <div class="hasp-hero-info">
                     <div class="hasp-info-chip"><span>🕐</span> Lun – Vie, 7:00 am – 5:00 pm · Sáb, 7:00 am – 3:00 pm</div>
-                    <div class="hasp-info-chip"><span>📍</span> Comedor UCH · 1er Piso</div>
-                    <div class="hasp-info-chip"><span>💳</span> Efectivo, tarjeta, Yape, Plin</div>
+                    <div class="hasp-info-chip"><span>📍</span> Comedor UCH · Pabellón C 1er Piso</div>
+                    <div class="hasp-info-chip"><span>💳</span> Efectivo, Tarjeta, Yape, Plin</div>
                 </div>
             </div>
         </section>
@@ -233,7 +231,7 @@
 
         <!-- FOOTER -->
         <footer class="hasp-footer">
-            <p><strong>Grupo HASP Service</strong> · Cafetería UCH · Comedor Universitario, 1er Piso</p>
+            <p><strong>GRUPO HASP SERVICE</strong> · Cafetería UCH · Comedor Universitario, Pabellón C 1er Piso</p>
             <p style="margin-top: 0.3rem;">Comprometidos con tu alimentación · Lun – Vie 7:00 am – 5:00 pm · Sáb 7:00 am – 3:00 pm</p>
         </footer>
 

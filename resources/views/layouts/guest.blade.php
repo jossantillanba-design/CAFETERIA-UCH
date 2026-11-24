@@ -221,7 +221,7 @@
             <div class="guest-side-logo">
                 <div class="guest-side-logo-icon">☕</div>
                 <div class="guest-side-logo-text">
-                    <strong>Grupo HASP Service</strong>
+                    <strong>GRUPO HASP SERVICE</strong>
                     <span>Cafetería UCH</span>
                 </div>
             </div>
@@ -229,8 +229,8 @@
             <p class="guest-side-desc">Pide tu almuerzo en línea, elige tu menú del día y recógelo en caja sin hacer cola.</p>
             <div class="guest-side-chips">
                 <span class="guest-side-chip">🕐 Lun–Vie 7am–5pm · Sáb 7am–3pm</span>
-                <span class="guest-side-chip">📍 Comedor UCH · 1er Piso</span>
-                <span class="guest-side-chip">💳 Yape · Plin · Efectivo</span>
+                <span class="guest-side-chip">📍 Comedor UCH · Pabellón C 1er Piso</span>
+                <span class="guest-side-chip">💳 Efectivo, Tarjeta, Yape, Plin</span>
             </div>
         </div>
     </div>
