@@ -12,10 +12,10 @@
 @endauth
 
 <nav x-data="navUCH()" x-init="init()" class="hasp-navbar">
-    <a href="/" class="hasp-nav-brand" aria-label="Inicio Grupo HASP Service">
+    <a href="/" class="hasp-nav-brand" aria-label="Inicio GRUPO HASP SERVICE">
         <div class="hasp-brand-icon">☕</div>
         <div class="hasp-brand-text">
-            <span class="hasp-brand-name">Grupo HASP Service</span>
+            <span class="hasp-brand-name">GRUPO HASP SERVICE</span>
             <span class="hasp-brand-sub">Cafetería UCH · Comedor Universitario</span>
         </div>
     </a>

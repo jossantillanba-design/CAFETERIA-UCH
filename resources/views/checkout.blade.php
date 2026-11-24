@@ -3,7 +3,7 @@
     <div x-data="checkout(@js(old('metodo', 'tarjeta')), @js(old('billetera', 'yape')))" x-init="init()" x-cloak class="hasp-co">
 
         <header class="hasp-co-header">
-            <span class="hasp-pill hasp-pill-brand">Comedor UCH · 1er piso</span>
+            <span class="hasp-pill hasp-pill-brand">Comedor UCH · Pabellón C 1er Piso</span>
             <h1>Pagar pedido</h1>
             <p>Revisa tu pedido y elige cómo quieres pagar.</p>
         </header>
