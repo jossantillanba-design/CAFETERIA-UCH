@@ -1,6 +1,5 @@
 <x-layouts.app>
     @php
-    @php
         $hoy = now();
         $heroTarjetas = collect($productosMenu)
             ->filter(fn (array $producto): bool => ! empty($producto['imagen']))
@@ -26,6 +25,11 @@
 
         $horaActual = (int) $hoy->format('G');
         $comedorAbierto = $hoy->dayOfWeek !== 0 && $horaActual >= 7 && $horaActual < 18;
+        $turno = match (true) {
+            $horaActual < 12 => 'Mañana',
+            $horaActual < 19 => 'Tarde',
+            default => 'Noche',
+        };
     @endphp
 
     <script>
