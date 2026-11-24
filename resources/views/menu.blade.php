@@ -1,6 +1,5 @@
 <x-layouts.app>
     @php
-    @php
         $hoy = now();
         $heroTarjetas = collect($productosMenu)
             ->filter(fn (array $producto): bool => ! empty($producto['imagen']))
