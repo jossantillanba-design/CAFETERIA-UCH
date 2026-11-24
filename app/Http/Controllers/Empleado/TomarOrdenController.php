@@ -48,7 +48,7 @@ class TomarOrdenController extends Controller
 
         $pedido = $servicio->crearPedido($datos, $datos['productos']);
 
-        return redirect()->route('empleado.pedidos.index')
+        return redirect()->route('empleado.pedidos.ticket', ['pedido' => $pedido, 'imprimir' => 1])
             ->with('mensaje', 'Ticket #'.$pedido->id.' registrado por S/ '.number_format((float) $pedido->total, 2).'.');
     }
 }

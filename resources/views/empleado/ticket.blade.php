@@ -35,6 +35,12 @@
             </div>
 
             <div class="flex items-center gap-2">
+                <a href="{{ route('empleado.tomar-orden.create') }}"
+                   class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-label-lg font-bold text-white transition-all active:scale-95"
+                   style="background: var(--hasp-brand, #C8511B);">
+                    <span class="material-symbols-outlined text-[20px]">add</span>
+                    Nueva orden
+                </a>
                 <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label-md font-bold {{ $estilo['etiqueta'] }}">
                     <span class="h-2 w-2 rounded-full {{ $estilo['punto'] }}"></span>
                     {{ $estilo['texto'] }}
@@ -80,7 +86,7 @@
                             {{ $esCaja ? 'Mostrador · '.$pedido->atendidoPor?->name : 'Canal web (Autoservicio)' }}
                         </span>
                         <span class="text-body-sm text-uch-muted">
-                            {{ $esCaja ? ($pedido->tipo_consumo === 'llevar' ? 'Para llevar' : 'En salón') : 'Pedido virtual' }}
+                            {{ $esCaja ? 'Venta en mostrador' : 'Pedido virtual' }}
                         </span>
                     </div>
                 </section>
@@ -171,4 +177,18 @@
             </div>
         </article>
     </div>
+
+    @if (request()->boolean('imprimir'))
+        @push('scripts')
+            <script>
+                {{-- Venta recién cobrada: abre la impresión y, al cerrarla, vuelve a una orden nueva --}}
+                window.addEventListener('load', function () {
+                    window.print();
+                });
+                window.addEventListener('afterprint', function () {
+                    window.location.href = @js(route('empleado.tomar-orden.create'));
+                });
+            </script>
+        @endpush
+    @endif
 </x-layouts.app>

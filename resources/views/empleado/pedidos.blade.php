@@ -1,94 +1,138 @@
 <x-layouts.app>
     <x-empleado-nav />
 
-    <div class="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
+    @php
+        $estilosEstado = [
+            'pendiente' => ['fondo' => '#FFF4E0', 'texto' => '#B45309', 'etiqueta' => 'Pendiente'],
+            'en_preparacion' => ['fondo' => 'var(--hasp-blue-lt, #E3F2FD)', 'texto' => 'var(--hasp-blue, #1565C0)', 'etiqueta' => 'En preparación'],
+            'listo' => ['fondo' => 'var(--hasp-green-lt, #E8F5E9)', 'texto' => 'var(--hasp-green, #2E7D32)', 'etiqueta' => 'Listo en barra'],
+        ];
+
+        $filtros = [
+            ['clave' => 'todos', 'texto' => 'Todos'],
+            ['clave' => 'pendiente', 'texto' => 'Pendientes'],
+            ['clave' => 'en_preparacion', 'texto' => 'En preparación'],
+            ['clave' => 'listo', 'texto' => 'Listos'],
+        ];
+
+        $acciones = [
+            'pendiente' => ['estado' => 'en_preparacion', 'texto' => 'Preparar orden', 'icono' => 'arrow_forward', 'fondo' => 'var(--hasp-brand, #C8511B)'],
+            'en_preparacion' => ['estado' => 'listo', 'texto' => 'Marcar como listo', 'icono' => 'done_all', 'fondo' => 'var(--hasp-blue, #1565C0)'],
+            'listo' => ['estado' => 'entregado', 'texto' => 'Confirmar entrega', 'icono' => 'inventory', 'fondo' => 'var(--hasp-green, #2E7D32)'],
+        ];
+
+        $metodosPago = [
+            'efectivo' => 'Efectivo',
+            'yape_plin' => 'Yape/Plin',
+            'tarjeta' => 'Tarjeta POS',
+        ];
+
+        $totalActivos = (int) $conteos->sum();
+    @endphp
+
+    <style>
+        .pv-wrap { width: 100%; max-width: 1500px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+        .pv-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; }
+        .pv-title { font-family: 'Rubik', sans-serif; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.01em; color: var(--hasp-text, #1C1C1C); }
+        .pv-sub { margin-top: 0.15rem; font-size: 0.875rem; color: var(--hasp-muted, #6E6E6E); }
+        .pv-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .pv-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; border-radius: 8px; padding: 0.55rem 1rem; font-size: 0.875rem; font-weight: 600; font-family: inherit; cursor: pointer; border: 1px solid transparent; text-decoration: none; transition: background .15s, border-color .15s, color .15s; }
+        .pv-btn-outline { background: #fff; border-color: var(--hasp-border, #EBEBEB); color: var(--hasp-text, #1C1C1C); }
+        .pv-btn-outline:hover { border-color: var(--hasp-brand, #C8511B); color: var(--hasp-brand, #C8511B); }
+        .pv-btn-brand { background: var(--hasp-brand, #C8511B); color: #fff; }
+        .pv-btn-brand:hover { background: var(--hasp-brand-mid, #E8650A); }
+        .pv-icon { font-size: 19px; line-height: 1; }
+
+        .pv-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 1.25rem; border-bottom: 1px solid var(--hasp-border, #EBEBEB); }
+        .pv-filter { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.6rem 0.9rem; font-size: 0.875rem; font-weight: 600; color: var(--hasp-muted, #6E6E6E); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+        .pv-filter:hover { color: var(--hasp-text, #1C1C1C); }
+        .pv-filter.is-on { color: var(--hasp-brand, #C8511B); border-bottom-color: var(--hasp-brand, #C8511B); }
+        .pv-count { background: var(--hasp-bg, #F9F9F7); color: var(--hasp-muted, #6E6E6E); border-radius: 9999px; padding: 0 0.5rem; font-size: 0.72rem; line-height: 1.25rem; }
+        .pv-filter.is-on .pv-count { background: var(--hasp-brand-lt, #FDF0E8); color: var(--hasp-brand, #C8511B); }
+        .pv-search-chip { margin-left: auto; display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--hasp-muted, #6E6E6E); padding-bottom: 0.4rem; }
+        .pv-search-chip a { color: var(--hasp-brand, #C8511B); font-weight: 600; }
+
+        .pv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.1rem; margin-top: 1.25rem; align-items: start; }
+        .pv-card { background: #fff; border: 1px solid var(--hasp-border, #EBEBEB); border-radius: var(--hasp-r, 12px); display: flex; flex-direction: column; overflow: hidden; }
+        .pv-card-top { padding: 1rem 1.1rem 0.85rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
+        .pv-num { font-family: 'Rubik', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--hasp-text, #1C1C1C); }
+        .pv-client { margin-top: 0.1rem; font-size: 0.85rem; color: var(--hasp-text, #1C1C1C); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pv-meta { margin-top: 0.3rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.75rem; font-size: 0.75rem; color: var(--hasp-muted, #6E6E6E); }
+        .pv-meta span { display: inline-flex; align-items: center; gap: 0.25rem; }
+        .pv-meta .material-symbols-outlined { font-size: 15px; }
+        .pv-pill { flex-shrink: 0; border-radius: 9999px; padding: 0.2rem 0.65rem; font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
+
+        .pv-items { padding: 0 1.1rem 0.9rem; }
+        .pv-item { padding: 0.6rem 0; border-top: 1px solid var(--hasp-border, #EBEBEB); }
+        .pv-item-row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; font-size: 0.875rem; color: var(--hasp-text, #1C1C1C); }
+        .pv-item-row strong { font-weight: 600; }
+        .pv-item-price { font-size: 0.82rem; color: var(--hasp-muted, #6E6E6E); white-space: nowrap; }
+        .pv-comp { margin-top: 0.2rem; padding-left: 1.1rem; font-size: 0.78rem; line-height: 1.5; color: var(--hasp-muted, #6E6E6E); list-style: none; }
+        .pv-comp b { font-weight: 600; color: var(--hasp-text, #1C1C1C); }
+
+        .pv-foot { margin-top: auto; background: var(--hasp-bg, #F9F9F7); border-top: 1px solid var(--hasp-border, #EBEBEB); padding: 0.9rem 1.1rem 1rem; }
+        .pv-total { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+        .pv-total-label { font-size: 0.8rem; color: var(--hasp-muted, #6E6E6E); }
+        .pv-total-amount { font-family: 'Rubik', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--hasp-text, #1C1C1C); }
+        .pv-pay { margin-top: 0.15rem; display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; font-size: 0.78rem; color: var(--hasp-muted, #6E6E6E); }
+        .pv-pay span { display: inline-flex; align-items: center; gap: 0.25rem; }
+        .pv-pay .material-symbols-outlined { font-size: 15px; }
+        .pv-buttons { margin-top: 0.8rem; display: flex; gap: 0.5rem; }
+        .pv-buttons form { display: flex; }
+        .pv-buttons form.pv-main { flex: 1 1 auto; }
+        .pv-main button { width: 100%; color: #fff; border: 0; padding: 0.65rem 0.8rem; }
+        .pv-main button:hover { filter: brightness(1.08); }
+        .pv-cancel { background: #fff; border-color: var(--hasp-border, #EBEBEB); color: var(--hasp-muted, #6E6E6E); padding: 0.65rem 0.9rem; }
+        .pv-cancel:hover { border-color: var(--hasp-brand, #C8511B); color: var(--hasp-brand, #C8511B); }
+        .pv-ticket { margin-top: 0.7rem; display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; font-weight: 600; color: var(--hasp-muted, #6E6E6E); text-decoration: none; }
+        .pv-ticket:hover { color: var(--hasp-brand, #C8511B); }
+        .pv-empty { grid-column: 1 / -1; background: #fff; border: 1px dashed var(--hasp-border, #EBEBEB); border-radius: var(--hasp-r, 12px); padding: 3rem 1rem; text-align: center; }
+        .pv-empty p:first-of-type { margin-top: 0.4rem; font-weight: 600; color: var(--hasp-text, #1C1C1C); }
+        .pv-empty p:last-of-type { margin-top: 0.2rem; font-size: 0.85rem; color: var(--hasp-muted, #6E6E6E); }
+    </style>
+
+    <div class="pv-wrap">
         <x-flash-message />
 
-        @php
-            $estilosEstado = [
-                'pendiente' => ['barra' => 'bg-uch-amber', 'etiqueta' => 'bg-uch-amber/15 text-[#B45309]', 'punto' => 'bg-uch-amber', 'texto' => 'Pendiente'],
-                'en_preparacion' => ['barra' => 'bg-uch-cyan', 'etiqueta' => 'bg-uch-cyan/15 text-[#0060A9]', 'punto' => 'bg-uch-cyan', 'texto' => 'En preparación'],
-                'listo' => ['barra' => 'bg-uch-teal', 'etiqueta' => 'bg-uch-teal/15 text-[#008779]', 'punto' => 'bg-uch-teal', 'texto' => 'Listo en barra'],
-            ];
-
-            $filtros = [
-                ['clave' => 'todos', 'texto' => 'Todos activos', 'punto' => null],
-                ['clave' => 'pendiente', 'texto' => 'Pendientes', 'punto' => 'bg-uch-amber'],
-                ['clave' => 'en_preparacion', 'texto' => 'En preparación', 'punto' => 'bg-uch-cyan'],
-                ['clave' => 'listo', 'texto' => 'Listos para recoger', 'punto' => 'bg-uch-teal'],
-            ];
-
-            $acciones = [
-                'pendiente' => ['estado' => 'en_preparacion', 'texto' => 'Preparar orden', 'icono' => 'arrow_forward', 'clase' => 'bg-uch-blue text-white hover:bg-uch-navy'],
-                'en_preparacion' => ['estado' => 'listo', 'texto' => 'Marcar como listo', 'icono' => 'done_all', 'clase' => 'bg-uch-cyan text-uch-navy-dark hover:bg-uch-blue hover:text-white'],
-                'listo' => ['estado' => 'entregado', 'texto' => 'Confirmar entrega', 'icono' => 'inventory', 'clase' => 'bg-uch-teal text-white hover:bg-[#008779]'],
-            ];
-
-            $metodosPago = [
-                'efectivo' => 'Efectivo',
-                'yape_plin' => 'Yape/Plin',
-                'tarjeta' => 'Tarjeta POS',
-            ];
-        @endphp
-
-        <section class="flex flex-col gap-4">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-2">
-                    <span class="h-2.5 w-2.5 animate-pulse rounded-full bg-uch-cyan"></span>
-                    <span class="text-label-md font-bold uppercase tracking-widest text-uch-blue">
-                        Cocina y barra · {{ $fechaTurno }}
-                    </span>
-                </div>
-                <button type="button" onclick="location.reload()"
-                        class="inline-flex items-center gap-1.5 rounded-full bg-uch-surface px-3 py-1 text-label-md text-uch-muted shadow-sm transition-colors hover:text-uch-blue">
-                    <span class="material-symbols-outlined text-[16px] text-uch-blue">refresh</span>
+        <header class="pv-head">
+            <div>
+                <h1 class="pv-title">Pedidos en vivo</h1>
+                <p class="pv-sub">Cocina y barra · {{ $fechaTurno }}</p>
+            </div>
+            <div class="pv-actions">
+                <button type="button" onclick="location.reload()" class="pv-btn pv-btn-outline">
+                    <span class="material-symbols-outlined pv-icon">refresh</span>
                     Actualizar
                 </button>
-            </div>
-
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h1 class="font-rubik text-headline-lg-mobile tracking-tight text-uch-navy lg:text-headline-lg">Pedidos en vivo</h1>
-                    <p class="text-body-md text-uch-muted">Cola única de pedidos web y mostrador.</p>
-                </div>
-                <a href="{{ route('empleado.tomar-orden.create') }}"
-                   class="inline-flex shrink-0 items-center gap-2 rounded-[10px] bg-uch-coral px-4 py-2.5 text-label-lg font-bold text-white shadow-sm transition-all hover:opacity-95 active:scale-95">
-                    <span class="material-symbols-outlined text-[20px]">add</span>
+                <a href="{{ route('empleado.tomar-orden.create') }}" class="pv-btn pv-btn-brand">
+                    <span class="material-symbols-outlined pv-icon">add</span>
                     Tomar orden
                 </a>
             </div>
+        </header>
 
-            <div class="flex flex-wrap items-center gap-2 pt-1">
-                @foreach ($filtros as $filtro)
-                    @php
-                        $filtroActivo = $estadoFiltro === $filtro['clave'];
-                        $urlFiltro = route('empleado.pedidos.index', ['estado' => $filtro['clave']] + ($buscar !== '' ? ['buscar' => $buscar] : []));
-                    @endphp
-                    <a href="{{ $urlFiltro }}"
-                       class="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-label-md font-bold shadow-sm transition-all {{ $filtroActivo ? 'bg-uch-navy text-white' : 'bg-uch-surface text-uch-muted hover:bg-uch-border' }}">
-                        @if ($filtro['punto'])
-                            <span class="h-2.5 w-2.5 rounded-full {{ $filtro['punto'] }}"></span>
-                        @endif
-                        <span>{{ $filtro['texto'] }}</span>
-                        @if ($filtro['clave'] !== 'todos')
-                            <span class="flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold {{ $filtroActivo ? 'bg-white/20 text-white' : 'bg-uch-bg text-uch-navy' }}">
-                                {{ (int) ($conteos[$filtro['clave']] ?? 0) }}
-                            </span>
-                        @endif
-                    </a>
-                @endforeach
+        <nav class="pv-filters" aria-label="Filtrar pedidos por estado">
+            @foreach ($filtros as $filtro)
+                @php
+                    $filtroActivo = $estadoFiltro === $filtro['clave'];
+                    $urlFiltro = route('empleado.pedidos.index', ['estado' => $filtro['clave']] + ($buscar !== '' ? ['buscar' => $buscar] : []));
+                    $cantidadFiltro = $filtro['clave'] === 'todos' ? $totalActivos : (int) ($conteos[$filtro['clave']] ?? 0);
+                @endphp
+                <a href="{{ $urlFiltro }}" class="pv-filter {{ $filtroActivo ? 'is-on' : '' }}" @if ($filtroActivo) aria-current="page" @endif>
+                    {{ $filtro['texto'] }}
+                    <span class="pv-count">{{ $cantidadFiltro }}</span>
+                </a>
+            @endforeach
 
-                @if ($buscar !== '')
-                    <span class="inline-flex items-center gap-1 rounded-full bg-uch-cyan/15 px-3 py-1.5 text-label-md font-semibold text-[#0060A9]">
-                        <span class="material-symbols-outlined text-[14px]">search</span>
-                        Resultados para "{{ $buscar }}"
-                        <a href="{{ route('empleado.pedidos.index') }}" class="font-bold underline">Limpiar</a>
-                    </span>
-                @endif
-            </div>
-        </section>
+            @if ($buscar !== '')
+                <span class="pv-search-chip">
+                    Resultados para "{{ $buscar }}"
+                    <a href="{{ route('empleado.pedidos.index') }}">Limpiar</a>
+                </span>
+            @endif
+        </nav>
 
-        <section class="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3" aria-label="Pedidos activos">
+        <section class="pv-grid" aria-label="Pedidos activos">
             @forelse ($pedidos as $pedido)
                 @php
                     $estilo = $estilosEstado[$pedido->estado] ?? $estilosEstado['pendiente'];
@@ -96,144 +140,112 @@
                     $nombreCliente = $pedido->cliente_nombre_caja ?: ($pedido->cliente->name ?? 'Cliente en mostrador');
                     $esCaja = $pedido->origen === \App\Models\Pedido::ORIGEN_CAJA;
                 @endphp
-                <article class="pedido-card relative flex flex-col overflow-hidden rounded-card bg-uch-surface shadow-uch-card">
-                    <div class="h-1 w-full {{ $estilo['barra'] }}"></div>
-
-                    <div class="flex grow flex-col gap-4 p-4">
-                        <div class="flex items-start justify-between gap-3">
-                            <div class="min-w-0">
-                                <h2 class="font-rubik text-headline-sm text-uch-navy">
-                                    Pedido #{{ str_pad((string) $pedido->id, 3, '0', STR_PAD_LEFT) }}
-                                </h2>
-                                <p class="mt-0.5 flex items-center gap-1 text-body-sm text-uch-muted">
-                                    <span class="material-symbols-outlined text-[15px]">person</span>
-                                    <span class="truncate">{{ $nombreCliente }}</span>
-                                </p>
-                                <div class="mt-2 flex flex-wrap items-center gap-1.5">
-                                    @if ($esCaja)
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-uch-cyan/15 px-2 py-0.5 text-[11px] font-bold text-[#0060A9]">
-                                            <span class="material-symbols-outlined text-[13px]">storefront</span>
-                                            Mostrador · Caja
-                                        </span>
-                                        <span class="rounded-full bg-uch-bg px-2 py-0.5 text-[11px] font-semibold text-uch-muted">
-                                            {{ $pedido->tipo_consumo === 'llevar' ? 'Para llevar' : 'En salón' }}
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-uch-blue/10 px-2 py-0.5 text-[11px] font-bold text-uch-blue">
-                                            <span class="material-symbols-outlined text-[13px]">language</span>
-                                            Web · Pagado
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
-                            <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold {{ $estilo['etiqueta'] }}">
-                                <span class="h-2 w-2 rounded-full {{ $estilo['punto'] }} {{ $pedido->estado === 'pendiente' ? 'animate-pulse' : '' }}"></span>
-                                {{ $estilo['texto'] }}
-                            </span>
-                        </div>
-
-                        <div class="flex flex-col gap-3">
-                            @foreach ($pedido->detalles as $detalle)
-                                @if ($detalle->tipo_item === 'menu')
-                                    <div class="relative overflow-hidden rounded-lg bg-uch-bg p-3">
-                                        <div class="absolute inset-y-0 left-0 w-1 {{ $estilo['barra'] }}"></div>
-                                        <div class="pl-2">
-                                            <div class="flex items-center justify-between gap-2">
-                                                <span class="font-rubik text-body-md font-bold text-uch-navy">
-                                                    {{ $detalle->cantidad }}x {{ $detalle->menu->titulo ?? 'Menú del día' }}
-                                                </span>
-                                                <span class="whitespace-nowrap font-rubik text-body-md text-uch-navy">
-                                                    S/ {{ number_format((float) ($detalle->precio_unitario * $detalle->cantidad), 2) }}
-                                                </span>
-                                            </div>
-                                            <ul class="mt-1.5 space-y-1 text-body-sm text-uch-muted">
-                                                @foreach (['Entrada' => $detalle->entrada?->nombre, 'Fondo' => $detalle->fondo?->nombre, 'Refresco' => $detalle->refresco?->nombre] as $etiqueta => $nombre)
-                                                    @if ($nombre)
-                                                        <li><strong class="font-semibold text-uch-text">{{ $etiqueta }}:</strong> {{ $nombre }}</li>
-                                                    @endif
-                                                @endforeach
-                                                @if (! $detalle->entrada && ! $detalle->fondo && ! $detalle->refresco && $detalle->detalle_menu)
-                                                    <li>{{ $detalle->detalle_menu }}</li>
-                                                @endif
-                                            </ul>
-                                        </div>
-                                    </div>
+                <article class="pv-card">
+                    <div class="pv-card-top">
+                        <div style="min-width: 0;">
+                            <h2 class="pv-num">Pedido #{{ str_pad((string) $pedido->id, 3, '0', STR_PAD_LEFT) }}</h2>
+                            <p class="pv-client">{{ $nombreCliente }}</p>
+                            <div class="pv-meta">
+                                @if ($esCaja)
+                                    <span>
+                                        <span class="material-symbols-outlined">storefront</span>
+                                        Mostrador · Caja
+                                    </span>
                                 @else
-                                    <div class="flex items-center justify-between gap-2 px-1 text-body-sm text-uch-text">
-                                        <span class="min-w-0 truncate">{{ $detalle->cantidad }}x {{ $detalle->producto->nombre ?? 'Producto' }}</span>
-                                        <span class="shrink-0 text-label-lg font-semibold">
-                                            S/ {{ number_format((float) ($detalle->precio_unitario * $detalle->cantidad), 2) }}
-                                        </span>
-                                    </div>
+                                    <span>
+                                        <span class="material-symbols-outlined">language</span>
+                                        Web · Pagado
+                                    </span>
                                 @endif
-                            @endforeach
+                                <span>
+                                    <span class="material-symbols-outlined">schedule</span>
+                                    {{ $pedido->created_at->diffForHumans() }}
+                                </span>
+                            </div>
                         </div>
+                        <span class="pv-pill" style="background: {{ $estilo['fondo'] }}; color: {{ $estilo['texto'] }};">{{ $estilo['etiqueta'] }}</span>
                     </div>
 
-                    <div class="mt-auto flex flex-col gap-3 bg-uch-bg p-4">
-                        <div class="flex flex-wrap items-center justify-between gap-2">
-                            <span class="font-rubik text-headline-sm font-bold text-uch-navy">
-                                Total: S/ {{ number_format((float) $pedido->total, 2) }}
-                            </span>
-                            <span class="inline-flex max-w-[190px] items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-label-md font-semibold text-emerald-700" title="{{ $pedido->metodo_pago }}">
-                                <span class="material-symbols-outlined text-[14px]">check</span>
-                                <span class="truncate">{{ $metodosPago[$pedido->metodo_pago] ?? ($pedido->metodo_pago ?: 'Pagado') }}</span>
-                            </span>
-                        </div>
+                    <div class="pv-items">
+                        @foreach ($pedido->detalles as $detalle)
+                            <div class="pv-item">
+                                @if ($detalle->tipo_item === 'menu')
+                                    <div class="pv-item-row">
+                                        <strong>{{ $detalle->cantidad }}x {{ $detalle->menu->titulo ?? 'Menú del día' }}</strong>
+                                        <span class="pv-item-price">S/ {{ number_format((float) ($detalle->precio_unitario * $detalle->cantidad), 2) }}</span>
+                                    </div>
+                                    <ul class="pv-comp">
+                                        @foreach (['Entrada' => $detalle->entrada?->nombre, 'Fondo' => $detalle->fondo?->nombre, 'Refresco' => $detalle->refresco?->nombre] as $etiqueta => $nombre)
+                                            @if ($nombre)
+                                                <li><b>{{ $etiqueta }}:</b> {{ $nombre }}</li>
+                                            @endif
+                                        @endforeach
+                                        @if (! $detalle->entrada && ! $detalle->fondo && ! $detalle->refresco && $detalle->detalle_menu)
+                                            <li>{{ $detalle->detalle_menu }}</li>
+                                        @endif
+                                    </ul>
+                                @else
+                                    <div class="pv-item-row">
+                                        <strong>{{ $detalle->cantidad }}x {{ $detalle->producto->nombre ?? 'Producto' }}</strong>
+                                        <span class="pv-item-price">S/ {{ number_format((float) ($detalle->precio_unitario * $detalle->cantidad), 2) }}</span>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
 
-                        <div class="flex flex-wrap items-center gap-2 text-body-sm text-uch-muted">
-                            <span class="inline-flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[15px]">schedule</span>
-                                {{ $pedido->created_at->diffForHumans() }}
+                    <div class="pv-foot">
+                        <div class="pv-total">
+                            <span class="pv-total-label">Total</span>
+                            <span class="pv-total-amount">S/ {{ number_format((float) $pedido->total, 2) }}</span>
+                        </div>
+                        <div class="pv-pay">
+                            <span title="{{ $pedido->metodo_pago }}">
+                                <span class="material-symbols-outlined">payments</span>
+                                {{ $metodosPago[$pedido->metodo_pago] ?? ($pedido->metodo_pago ?: 'Pagado') }}
                             </span>
                             @if ($esCaja && $pedido->vuelto !== null)
-                                <span class="inline-flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-[15px]">replay</span>
+                                <span>
+                                    <span class="material-symbols-outlined">replay</span>
                                     Vuelto S/ {{ number_format((float) $pedido->vuelto, 2) }}
                                 </span>
                             @endif
                         </div>
 
-                        <div class="flex flex-col gap-2 sm:flex-row">
+                        <div class="pv-buttons">
                             @if ($accion)
-                                <form method="POST" action="{{ route('empleado.pedidos.estado', $pedido) }}" class="sm:flex-1">
+                                <form method="POST" action="{{ route('empleado.pedidos.estado', $pedido) }}" class="pv-main">
                                     @csrf
                                     @method('PUT')
                                     <input type="hidden" name="estado" value="{{ $accion['estado'] }}">
-                                    <button type="submit"
-                                            class="inline-flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-label-lg font-bold transition-colors active:scale-[0.99] {{ $accion['clase'] }}">
-                                        <span class="material-symbols-outlined text-[18px]">{{ $accion['icono'] }}</span>
-                                        <span>{{ $accion['texto'] }}</span>
+                                    <button type="submit" class="pv-btn" style="background: {{ $accion['fondo'] }};">
+                                        <span class="material-symbols-outlined pv-icon">{{ $accion['icono'] }}</span>
+                                        {{ $accion['texto'] }}
                                     </button>
                                 </form>
                             @endif
 
                             @if ($pedido->estado === 'pendiente')
-                                <form method="POST" action="{{ route('empleado.pedidos.estado', $pedido) }}" class="sm:flex-1">
+                                <form method="POST" action="{{ route('empleado.pedidos.estado', $pedido) }}">
                                     @csrf
                                     @method('PUT')
                                     <input type="hidden" name="estado" value="cancelado">
-                                    <button type="submit"
-                                            class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-uch-surface px-3 py-2.5 text-label-md font-bold text-uch-coral transition-colors hover:bg-uch-coral/10">
-                                        <span class="material-symbols-outlined text-[16px]">cancel</span>
-                                        Anular
-                                    </button>
+                                    <button type="submit" class="pv-btn pv-cancel">Anular</button>
                                 </form>
                             @endif
                         </div>
 
-                        <a href="{{ route('empleado.pedidos.ticket', $pedido) }}"
-                           class="inline-flex items-center justify-center gap-1.5 text-label-md font-semibold text-uch-blue transition-colors hover:text-uch-navy">
-                            <span class="material-symbols-outlined text-[16px]">receipt_long</span>
+                        <a href="{{ route('empleado.pedidos.ticket', $pedido) }}" class="pv-ticket">
+                            <span class="material-symbols-outlined" style="font-size: 16px;">receipt_long</span>
                             Ver / imprimir ticket
                         </a>
                     </div>
                 </article>
             @empty
-                <div class="col-span-full rounded-card bg-uch-surface p-10 text-center shadow-uch-card">
-                    <span class="material-symbols-outlined text-[34px] text-uch-muted">room_service</span>
-                    <p class="mt-2 text-body-md font-semibold text-uch-navy">No hay pedidos activos con este filtro.</p>
-                    <p class="mt-1 text-body-sm text-uch-muted">Los nuevos tickets aparecerán aquí automáticamente.</p>
+                <div class="pv-empty">
+                    <span class="material-symbols-outlined" style="font-size: 34px; color: var(--hasp-subtle, #ABABAB);">room_service</span>
+                    <p>No hay pedidos activos con este filtro.</p>
+                    <p>Los nuevos tickets aparecerán aquí al actualizar la página.</p>
                 </div>
             @endforelse
         </section>

@@ -1,212 +1,284 @@
 <x-layouts.app>
     <x-empleado-nav />
 
-    <div class="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
+    @php
+        $estilosEstado = [
+            'pendiente' => ['fondo' => '#FFF4E0', 'texto' => '#B45309', 'etiqueta' => 'Pendiente'],
+            'en_preparacion' => ['fondo' => 'var(--hasp-blue-lt, #E3F2FD)', 'texto' => 'var(--hasp-blue, #1565C0)', 'etiqueta' => 'En preparación'],
+            'listo' => ['fondo' => 'var(--hasp-blue-lt, #E3F2FD)', 'texto' => 'var(--hasp-blue, #1565C0)', 'etiqueta' => 'Listo en barra'],
+            'entregado' => ['fondo' => 'var(--hasp-green-lt, #E8F5E9)', 'texto' => 'var(--hasp-green, #2E7D32)', 'etiqueta' => 'Entregado'],
+            'cancelado' => ['fondo' => '#FDECEA', 'texto' => '#C62828', 'etiqueta' => 'Anulado'],
+        ];
+
+        $metodosPago = [
+            'efectivo' => 'Efectivo',
+            'yape_plin' => 'Yape/Plin',
+            'tarjeta' => 'Tarjeta POS',
+        ];
+
+        $origenes = ['todos' => 'Todos los orígenes', 'web' => 'Solo web', 'caja' => 'Solo mostrador'];
+        $metodosFiltro = ['todos' => 'Todos los métodos'] + $metodosPago;
+        $estadosFiltro = ['todos' => 'Todos los estados', 'entregado' => 'Entregados', 'proceso' => 'En proceso', 'cancelado' => 'Anulados'];
+
+        $fechaDesde = \Illuminate\Support\Carbon::parse($desdeHistorial)->locale('es');
+        $fechaHasta = \Illuminate\Support\Carbon::parse($hastaHistorial)->locale('es');
+        $unSoloDia = $desdeHistorial === $hastaHistorial;
+        $esHoy = $unSoloDia && $fechaDesde->isToday();
+        $textoRango = $unSoloDia
+            ? ($esHoy ? 'Hoy, ' : '').$fechaDesde->isoFormat('dddd D [de] MMMM [de] YYYY')
+            : 'Del '.$fechaDesde->format('d/m/Y').' al '.$fechaHasta->format('d/m/Y');
+
+        $tarjetasMetodo = [
+            ['etiqueta' => 'Efectivo', 'valor' => $arqueo['efectivo'], 'tickets' => $arqueo['efectivoTickets']],
+            ['etiqueta' => 'Yape/Plin', 'valor' => $arqueo['billeteras'], 'tickets' => $arqueo['billeterasTickets']],
+            ['etiqueta' => 'Tarjeta POS', 'valor' => $arqueo['tarjeta'], 'tickets' => $arqueo['tarjetaTickets']],
+        ];
+    @endphp
+
+    <style>
+        .hv-wrap { width: 100%; max-width: 1500px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+        .hv-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; }
+        .hv-title { font-family: 'Rubik', sans-serif; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.01em; color: var(--hasp-text, #1C1C1C); }
+        .hv-sub { margin-top: 0.15rem; font-size: 0.875rem; color: var(--hasp-muted, #6E6E6E); }
+        .hv-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .hv-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; border-radius: 8px; padding: 0.55rem 1rem; font-size: 0.875rem; font-weight: 600; font-family: inherit; cursor: pointer; border: 1px solid var(--hasp-border, #EBEBEB); background: #fff; color: var(--hasp-text, #1C1C1C); text-decoration: none; transition: border-color .15s, color .15s, background .15s; }
+        .hv-btn:hover { border-color: var(--hasp-brand, #C8511B); color: var(--hasp-brand, #C8511B); }
+        .hv-btn-brand { background: var(--hasp-brand, #C8511B); border-color: var(--hasp-brand, #C8511B); color: #fff; }
+        .hv-btn-brand:hover { background: var(--hasp-brand-mid, #E8650A); border-color: var(--hasp-brand-mid, #E8650A); color: #fff; }
+        .hv-icon { font-size: 19px; line-height: 1; }
+        .hv-card { background: #fff; border: 1px solid var(--hasp-border, #EBEBEB); border-radius: var(--hasp-r, 12px); }
+
+        .hv-filters { margin-top: 1.25rem; padding: 1.1rem; }
+        .hv-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.9rem; }
+        .hv-chip { border: 1px solid var(--hasp-border, #EBEBEB); border-radius: 9999px; padding: 0.3rem 0.85rem; font-size: 0.8rem; font-weight: 600; color: var(--hasp-muted, #6E6E6E); text-decoration: none; }
+        .hv-chip:hover { border-color: var(--hasp-brand, #C8511B); color: var(--hasp-brand, #C8511B); }
+        .hv-chip.is-on { background: var(--hasp-brand-lt, #FDF0E8); border-color: var(--hasp-brand, #C8511B); color: var(--hasp-brand, #C8511B); }
+        .hv-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; align-items: end; }
+        .hv-field label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--hasp-muted, #6E6E6E); margin-bottom: 0.3rem; }
+        .hv-input { width: 100%; border: 1px solid var(--hasp-border, #EBEBEB); border-radius: 8px; padding: 0.5rem 0.7rem; font-size: 0.875rem; background: var(--hasp-bg, #F9F9F7); --tw-ring-color: var(--hasp-brand, #C8511B); }
+        .hv-input:focus { background: #fff; border-color: var(--hasp-brand, #C8511B); }
+        .hv-form-actions { display: flex; align-items: center; gap: 0.9rem; margin-top: 0.9rem; }
+        .hv-form-actions a { font-size: 0.8rem; font-weight: 600; color: var(--hasp-muted, #6E6E6E); }
+
+        .hv-cuadre { margin-top: 1.25rem; padding: 1.25rem 1.25rem 1.1rem; }
+        .hv-cuadre-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; align-items: baseline; }
+        .hv-h2 { font-family: 'Rubik', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--hasp-text, #1C1C1C); }
+        .hv-muted { font-size: 0.8rem; color: var(--hasp-muted, #6E6E6E); }
+        .hv-kpis { display: grid; grid-template-columns: minmax(220px, 1.2fr) repeat(3, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 0.9rem; }
+        @media (max-width: 900px) { .hv-kpis { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 520px) { .hv-kpis { grid-template-columns: 1fr; } }
+        .hv-kpi { border: 1px solid var(--hasp-border, #EBEBEB); border-radius: 10px; padding: 0.85rem 1rem; }
+        .hv-kpi.is-main { background: var(--hasp-brand-lt, #FDF0E8); border-color: transparent; }
+        .hv-kpi-label { font-size: 0.78rem; font-weight: 600; color: var(--hasp-muted, #6E6E6E); }
+        .hv-kpi-value { margin-top: 0.15rem; font-family: 'Rubik', sans-serif; font-size: 1.45rem; font-weight: 700; color: var(--hasp-text, #1C1C1C); }
+        .hv-kpi.is-main .hv-kpi-value { color: var(--hasp-brand, #C8511B); font-size: 1.8rem; }
+        .hv-notes { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; margin-top: 0.9rem; padding-top: 0.8rem; border-top: 1px dashed var(--hasp-border, #EBEBEB); font-size: 0.82rem; color: var(--hasp-muted, #6E6E6E); }
+        .hv-notes b { color: var(--hasp-text, #1C1C1C); }
+        .hv-days { width: 100%; margin-top: 0.9rem; border-collapse: collapse; font-size: 0.85rem; }
+        .hv-days th { text-align: left; padding: 0.4rem 0.6rem; font-size: 0.75rem; color: var(--hasp-muted, #6E6E6E); border-bottom: 1px solid var(--hasp-border, #EBEBEB); }
+        .hv-days td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--hasp-border, #EBEBEB); }
+        .hv-days .r { text-align: right; }
+
+        .hv-table-card { margin-top: 1.25rem; overflow: hidden; }
+        .hv-scroll { overflow-x: auto; }
+        .hv-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .hv-table th { text-align: left; padding: 0.75rem 1rem; font-size: 0.78rem; font-weight: 700; color: var(--hasp-muted, #6E6E6E); background: var(--hasp-bg, #F9F9F7); white-space: nowrap; }
+        .hv-table td { padding: 0.8rem 1rem; border-top: 1px solid var(--hasp-border, #EBEBEB); vertical-align: top; }
+        .hv-table tr:hover td { background: var(--hasp-bg, #F9F9F7); }
+        .hv-num { font-family: 'Rubik', sans-serif; font-weight: 700; white-space: nowrap; }
+        .hv-sm { display: block; font-size: 0.75rem; font-weight: 400; color: var(--hasp-muted, #6E6E6E); }
+        .hv-resumen { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .hv-pill { display: inline-block; border-radius: 9999px; padding: 0.15rem 0.6rem; font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
+        .hv-link { font-weight: 600; color: var(--hasp-brand, #C8511B); text-decoration: none; white-space: nowrap; }
+        .hv-link:hover { text-decoration: underline; }
+        .hv-empty { padding: 2.5rem 1rem; text-align: center; color: var(--hasp-muted, #6E6E6E); }
+        .hv-pager { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--hasp-bg, #F9F9F7); border-top: 1px solid var(--hasp-border, #EBEBEB); font-size: 0.8rem; color: var(--hasp-muted, #6E6E6E); }
+        .hv-printonly { display: none; }
+        @media print {
+            .hv-noprint { display: none !important; }
+            .hv-printonly { display: block; margin-bottom: 0.75rem; font-size: 0.85rem; }
+            .hv-cuadre { margin-top: 0; border: 0; }
+        }
+    </style>
+
+    <div class="hv-wrap">
         <x-flash-message />
 
-        @php
-            $estilosEstado = [
-                'entregado' => ['etiqueta' => 'bg-uch-teal/15 text-[#008779]', 'punto' => 'bg-uch-teal', 'texto' => 'Entregado'],
-                'cancelado' => ['etiqueta' => 'bg-uch-coral/10 text-uch-coral-dark', 'punto' => 'bg-uch-coral', 'texto' => 'Anulado'],
-            ];
-
-            $metodosPago = [
-                'efectivo' => 'Efectivo',
-                'yape_plin' => 'Yape/Plin',
-                'tarjeta' => 'Tarjeta POS',
-            ];
-
-            $origenes = [
-                'todos' => 'Todos los orígenes',
-                'web' => 'Solo web',
-                'caja' => 'Solo mostrador',
-            ];
-
-            $metodosFiltro = [
-                'todos' => 'Todos los métodos',
-                'efectivo' => 'Efectivo',
-                'yape_plin' => 'Yape/Plin',
-                'tarjeta' => 'Tarjeta POS',
-            ];
-
-            $tarjetasArqueo = [
-                ['etiqueta' => 'Efectivo', 'valor' => $arqueo['efectivo'], 'icono' => 'payments', 'acento' => 'bg-uch-teal'],
-                ['etiqueta' => 'Yape/Plin', 'valor' => $arqueo['billeteras'], 'icono' => 'account_balance_wallet', 'acento' => 'bg-uch-blue'],
-                ['etiqueta' => 'Tarjeta POS', 'valor' => $arqueo['tarjeta'], 'icono' => 'credit_card', 'acento' => 'bg-uch-cyan'],
-            ];
-        @endphp
-
-        <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <header class="hv-head hv-noprint">
             <div>
-                <p class="flex items-center gap-2 text-label-md font-bold uppercase tracking-widest text-uch-teal">
-                    <span class="material-symbols-outlined text-[18px]">history</span>
-                    Módulo 3 · Historial y arqueo
-                </p>
-                <h1 class="mt-1 font-rubik text-headline-lg-mobile tracking-tight text-uch-navy lg:text-headline-lg">Historial de pedidos</h1>
-                <p class="text-body-md text-uch-muted">
-                    Operaciones finalizadas del {{ \Illuminate\Support\Carbon::parse($fechaHistorial)->locale('es')->isoFormat('D [de] MMMM [de] YYYY') }}.
-                </p>
+                <h1 class="hv-title">Historial y cuadre de caja</h1>
+                <p class="hv-sub">{{ ucfirst($textoRango) }}</p>
             </div>
-            <a href="{{ route('empleado.pedidos.index') }}"
-               class="inline-flex shrink-0 items-center gap-2 rounded-[10px] border border-uch-border bg-uch-surface px-4 py-2.5 text-label-lg font-semibold text-uch-navy transition-colors hover:border-uch-blue">
-                <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
-                Pedidos en vivo
-            </a>
+            <div class="hv-actions">
+                <button type="button" onclick="window.print()" class="hv-btn">
+                    <span class="material-symbols-outlined hv-icon">print</span>
+                    Imprimir cuadre
+                </button>
+                <a href="{{ route('empleado.pedidos.index') }}" class="hv-btn">
+                    <span class="material-symbols-outlined hv-icon">shopping_bag</span>
+                    Pedidos en vivo
+                </a>
+            </div>
         </header>
 
-        <section class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Arqueo de la fecha">
-            @foreach ($tarjetasArqueo as $tarjeta)
-                <article class="relative overflow-hidden rounded-card bg-uch-surface p-5 shadow-uch-card">
-                    <div class="absolute inset-y-0 left-0 w-1 {{ $tarjeta['acento'] }}"></div>
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <p class="text-label-md font-semibold uppercase tracking-wider text-uch-muted">{{ $tarjeta['etiqueta'] }}</p>
-                            <p class="mt-2 font-rubik text-headline-md text-uch-navy">S/ {{ number_format((float) $tarjeta['valor'], 2) }}</p>
-                        </div>
-                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-uch-bg text-uch-blue">
-                            <span class="material-symbols-outlined text-[20px]">{{ $tarjeta['icono'] }}</span>
-                        </span>
-                    </div>
-                </article>
-            @endforeach
+        <section class="hv-card hv-filters hv-noprint" aria-label="Filtros del historial">
+            <div class="hv-chips">
+                @foreach ($atajos as $atajo)
+                    <a href="{{ route('empleado.historial.index', ['desde' => $atajo['desde'], 'hasta' => $atajo['hasta']]) }}"
+                       class="hv-chip {{ $atajo['activo'] ? 'is-on' : '' }}">{{ $atajo['etiqueta'] }}</a>
+                @endforeach
+            </div>
 
-            <article class="relative overflow-hidden rounded-card bg-uch-navy p-5 text-white shadow-uch-card">
-                <div class="absolute inset-y-0 left-0 w-1 bg-uch-coral"></div>
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <p class="text-label-md font-semibold uppercase tracking-wider text-white/70">Tickets entregados</p>
-                        <p class="mt-2 font-rubik text-headline-md">{{ (int) $arqueo['tickets'] }}</p>
+            <form method="GET" action="{{ route('empleado.historial.index') }}">
+                <div class="hv-fields">
+                    <div class="hv-field">
+                        <label for="desde-historial">Desde</label>
+                        <input id="desde-historial" name="desde" type="date" value="{{ $desdeHistorial }}" class="hv-input">
                     </div>
-                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10">
-                        <span class="material-symbols-outlined text-[20px]">receipt_long</span>
-                    </span>
+                    <div class="hv-field">
+                        <label for="hasta-historial">Hasta</label>
+                        <input id="hasta-historial" name="hasta" type="date" value="{{ $hastaHistorial }}" class="hv-input">
+                    </div>
+                    <div class="hv-field">
+                        <label for="buscar-historial">Buscar</label>
+                        <input id="buscar-historial" name="buscar" type="search" value="{{ $buscar }}" placeholder="N.° ticket, cliente o código" class="hv-input">
+                    </div>
+                    <div class="hv-field">
+                        <label for="origen-historial">Origen</label>
+                        <select id="origen-historial" name="origen" class="hv-input">
+                            @foreach ($origenes as $valor => $etiqueta)
+                                <option value="{{ $valor }}" @selected($origenFiltro === $valor)>{{ $etiqueta }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="hv-field">
+                        <label for="metodo-historial">Método de pago</label>
+                        <select id="metodo-historial" name="metodo_pago" class="hv-input">
+                            @foreach ($metodosFiltro as $valor => $etiqueta)
+                                <option value="{{ $valor }}" @selected($metodoFiltro === $valor)>{{ $etiqueta }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="hv-field">
+                        <label for="estado-historial">Estado</label>
+                        <select id="estado-historial" name="estado" class="hv-input">
+                            @foreach ($estadosFiltro as $valor => $etiqueta)
+                                <option value="{{ $valor }}" @selected($estadoFiltro === $valor)>{{ $etiqueta }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
-            </article>
-        </section>
-
-        <section class="mt-5 rounded-card bg-uch-surface p-5 shadow-uch-card">
-            <form method="GET" action="{{ route('empleado.historial.index') }}" class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 xl:grid-cols-12">
-                <label class="block xl:col-span-4">
-                    <span class="mb-1 block text-label-md font-semibold text-uch-muted">Búsqueda rápida</span>
-                    <div class="relative flex items-center">
-                        <span class="material-symbols-outlined pointer-events-none absolute left-3.5 text-[20px] text-uch-muted">search</span>
-                        <input id="buscar-historial" name="buscar" type="search" value="{{ $buscar }}"
-                               placeholder="#ticket, nombre o código de operación"
-                               class="w-full rounded-lg bg-uch-bg py-2.5 pl-10 pr-4 text-body-md text-uch-text placeholder:text-uch-muted focus:bg-uch-surface focus:ring-2 focus:ring-uch-blue/30">
-                    </div>
-                </label>
-
-                <label class="block xl:col-span-2">
-                    <span class="mb-1 block text-label-md font-semibold text-uch-muted">Fecha</span>
-                    <input id="fecha-historial" name="fecha" type="date" value="{{ $fechaHistorial }}"
-                           class="w-full rounded-lg bg-uch-bg px-3 py-2.5 text-body-md font-semibold text-uch-navy focus:bg-uch-surface focus:ring-2 focus:ring-uch-blue/30">
-                </label>
-
-                <label class="block xl:col-span-3">
-                    <span class="mb-1 block text-label-md font-semibold text-uch-muted">Origen</span>
-                    <select id="origen-historial" name="origen"
-                            class="w-full rounded-lg bg-uch-bg px-3 py-2.5 text-body-md text-uch-navy focus:bg-uch-surface focus:ring-2 focus:ring-uch-blue/30">
-                        @foreach ($origenes as $valor => $etiqueta)
-                            <option value="{{ $valor }}" @selected($origenFiltro === $valor)>{{ $etiqueta }}</option>
-                        @endforeach
-                    </select>
-                </label>
-
-                <label class="block xl:col-span-3">
-                    <span class="mb-1 block text-label-md font-semibold text-uch-muted">Método de pago</span>
-                    <select id="metodo-historial" name="metodo_pago"
-                            class="w-full rounded-lg bg-uch-bg px-3 py-2.5 text-body-md text-uch-navy focus:bg-uch-surface focus:ring-2 focus:ring-uch-blue/30">
-                        @foreach ($metodosFiltro as $valor => $etiqueta)
-                            <option value="{{ $valor }}" @selected($metodoFiltro === $valor)>{{ $etiqueta }}</option>
-                        @endforeach
-                    </select>
-                </label>
-
-                <div class="flex items-center gap-3 md:col-span-2 xl:col-span-12">
-                    <button type="submit"
-                            class="inline-flex items-center gap-2 rounded-lg bg-uch-blue px-4 py-2.5 text-label-lg font-bold text-white transition-colors hover:bg-uch-navy">
-                        <span class="material-symbols-outlined text-[18px]">filter_alt</span>
+                <div class="hv-form-actions">
+                    <button type="submit" class="hv-btn hv-btn-brand">
+                        <span class="material-symbols-outlined hv-icon">filter_alt</span>
                         Aplicar filtros
                     </button>
-                    <a href="{{ route('empleado.historial.index') }}" class="text-label-md font-semibold text-uch-muted transition-colors hover:text-uch-blue">Limpiar</a>
+                    <a href="{{ route('empleado.historial.index') }}">Volver a hoy</a>
                 </div>
             </form>
         </section>
 
-        <section class="mt-5 overflow-hidden rounded-card bg-uch-surface shadow-uch-card">
-            <div class="overflow-x-auto">
-                <table class="w-full border-collapse text-left text-body-md">
+        <section class="hv-card hv-cuadre" aria-label="Cuadre de caja">
+            <p class="hv-printonly">
+                <strong>GRUPO HASP SERVICE · Cafetería UCH</strong><br>
+                Cuadre de caja · {{ ucfirst($textoRango) }}<br>
+                Cajero: {{ auth()->user()->name }} · Impreso: {{ now()->format('d/m/Y h:i a') }}
+            </p>
+
+            <div class="hv-cuadre-head">
+                <h2 class="hv-h2">Cuadre de caja</h2>
+                <span class="hv-muted">Incluye todo lo cobrado en las fechas elegidas, sin contar pedidos anulados.</span>
+            </div>
+
+            <div class="hv-kpis">
+                <div class="hv-kpi is-main">
+                    <p class="hv-kpi-label">{{ $esHoy ? 'Venta de hoy' : 'Total vendido' }}</p>
+                    <p class="hv-kpi-value">S/ {{ number_format($arqueo['total'], 2) }}</p>
+                    <p class="hv-muted">{{ $arqueo['tickets'] }} {{ $arqueo['tickets'] === 1 ? 'ticket' : 'tickets' }}</p>
+                </div>
+                @foreach ($tarjetasMetodo as $tarjeta)
+                    <div class="hv-kpi">
+                        <p class="hv-kpi-label">{{ $tarjeta['etiqueta'] }}</p>
+                        <p class="hv-kpi-value">S/ {{ number_format($tarjeta['valor'], 2) }}</p>
+                        <p class="hv-muted">{{ $tarjeta['tickets'] }} {{ $tarjeta['tickets'] === 1 ? 'ticket' : 'tickets' }}</p>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="hv-notes">
+                <span>Efectivo que debe haber en caja: <b>S/ {{ number_format($arqueo['efectivo'], 2) }}</b></span>
+                <span>Anulados (no incluidos): <b>{{ $arqueo['anulados'] }}</b> · S/ {{ number_format($arqueo['anuladosMonto'], 2) }}</span>
+                <span>Cobrados y aún sin entregar: <b>{{ $arqueo['sinEntregar'] }}</b></span>
+                @if ($arqueo['otros'] > 0)
+                    <span>Otros métodos de pago: <b>S/ {{ number_format($arqueo['otros'], 2) }}</b></span>
+                @endif
+            </div>
+
+            @if (! $unSoloDia && $porDia->isNotEmpty())
+                <table class="hv-days">
+                    <thead><tr><th>Día</th><th class="r">Tickets</th><th class="r">Total vendido</th></tr></thead>
+                    <tbody>
+                        @foreach ($porDia as $dia)
+                            <tr>
+                                <td>{{ ucfirst(\Illuminate\Support\Carbon::parse($dia['fecha'])->locale('es')->isoFormat('ddd D [de] MMM')) }}</td>
+                                <td class="r">{{ $dia['tickets'] }}</td>
+                                <td class="r">S/ {{ number_format($dia['total'], 2) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        </section>
+
+        <section class="hv-card hv-table-card hv-noprint" aria-label="Pedidos del periodo">
+            <div class="hv-scroll">
+                <table class="hv-table">
                     <thead>
-                        <tr class="bg-uch-bg text-label-lg text-uch-navy">
-                            <th class="px-4 py-3 font-bold">Ticket</th>
-                            <th class="px-4 py-3 font-bold">Cliente</th>
-                            <th class="px-4 py-3 font-bold">Resumen</th>
-                            <th class="px-4 py-3 font-bold">Pago</th>
-                            <th class="px-4 py-3 font-bold">Total</th>
-                            <th class="px-4 py-3 font-bold">Estado</th>
-                            <th class="px-4 py-3 font-bold">Hora</th>
-                            <th class="px-4 py-3 text-right font-bold">Acción</th>
+                        <tr>
+                            <th>Ticket</th>
+                            <th>Cliente</th>
+                            <th>Resumen</th>
+                            <th>Pago</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Fecha y hora</th>
+                            <th></th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-uch-border">
+                    <tbody>
                         @forelse ($historial as $pedido)
                             @php
-                                $estilo = $estilosEstado[$pedido->estado] ?? $estilosEstado['entregado'];
+                                $estilo = $estilosEstado[$pedido->estado] ?? $estilosEstado['pendiente'];
                                 $nombreCliente = $pedido->cliente_nombre_caja ?: ($pedido->cliente->name ?? 'Mostrador');
                                 $esCaja = $pedido->origen === \App\Models\Pedido::ORIGEN_CAJA;
                             @endphp
-                            <tr class="transition-colors hover:bg-uch-bg">
-                                <td class="whitespace-nowrap px-4 py-3.5 font-rubik text-label-lg font-bold text-uch-navy">
+                            <tr>
+                                <td class="hv-num">
                                     #{{ str_pad((string) $pedido->id, 3, '0', STR_PAD_LEFT) }}
                                     @if ($pedido->codigo_transaccion)
-                                        <span class="block text-body-sm font-normal text-uch-muted">{{ $pedido->codigo_transaccion }}</span>
+                                        <span class="hv-sm">{{ $pedido->codigo_transaccion }}</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3.5">
-                                    <span class="block text-label-lg font-semibold text-uch-text">{{ $nombreCliente }}</span>
-                                    <span class="text-body-sm text-uch-muted">{{ $esCaja ? 'Mostrador' : 'Web' }}</span>
+                                <td>
+                                    <strong style="font-weight: 600;">{{ $nombreCliente }}</strong>
+                                    <span class="hv-sm">{{ $esCaja ? 'Mostrador' : 'Web' }}</span>
                                 </td>
-                                <td class="max-w-[280px] px-4 py-3.5 text-body-sm text-uch-text">
-                                    <span class="block truncate" title="{{ $pedido->resumen }}">{{ $pedido->resumen }}</span>
-                                </td>
-                                <td class="px-4 py-3.5">
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-uch-bg px-2.5 py-1 text-label-md text-uch-muted">
-                                        <span class="material-symbols-outlined text-[14px] text-uch-blue">payments</span>
-                                        {{ $metodosPago[$pedido->metodo_pago] ?? ($pedido->metodo_pago ?: 'Sin registro') }}
-                                    </span>
-                                </td>
-                                <td class="whitespace-nowrap px-4 py-3.5 font-rubik text-body-md font-bold text-uch-navy">S/ {{ number_format((float) $pedido->total, 2) }}</td>
-                                <td class="px-4 py-3.5">
-                                    <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-label-md font-bold {{ $estilo['etiqueta'] }}">
-                                        <span class="h-2 w-2 rounded-full {{ $estilo['punto'] }}"></span>
-                                        {{ $estilo['texto'] }}
-                                    </span>
-                                </td>
-                                <td class="whitespace-nowrap px-4 py-3.5 text-body-sm text-uch-muted">{{ $pedido->updated_at->format('h:i a') }}</td>
-                                <td class="px-4 py-3.5 text-right">
-                                    <a href="{{ route('empleado.pedidos.ticket', $pedido) }}"
-                                       class="inline-flex items-center gap-1 rounded-md px-3 py-1 text-label-md font-bold text-uch-blue transition-colors hover:bg-uch-bg">
-                                        Ver ticket
-                                        <span class="material-symbols-outlined text-[16px]">visibility</span>
-                                    </a>
-                                </td>
+                                <td><div class="hv-resumen" title="{{ $pedido->resumen }}">{{ $pedido->resumen }}</div></td>
+                                <td>{{ $metodosPago[$pedido->metodo_pago] ?? ($pedido->metodo_pago ?: 'Sin registro') }}</td>
+                                <td class="hv-num">S/ {{ number_format((float) $pedido->total, 2) }}</td>
+                                <td><span class="hv-pill" style="background: {{ $estilo['fondo'] }}; color: {{ $estilo['texto'] }};">{{ $estilo['etiqueta'] }}</span></td>
+                                <td style="white-space: nowrap; color: var(--hasp-muted, #6E6E6E);">{{ $pedido->created_at->format('d/m/Y h:i a') }}</td>
+                                <td style="text-align: right;"><a href="{{ route('empleado.pedidos.ticket', $pedido) }}" class="hv-link">Ver ticket</a></td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="8" class="px-4 py-10 text-center text-body-sm text-uch-muted">
-                                    No hay pedidos finalizados para los filtros seleccionados.
-                                </td>
-                            </tr>
+                            <tr><td colspan="8" class="hv-empty">No hay pedidos en estas fechas con los filtros elegidos.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
 
-            <div class="flex flex-col gap-3 bg-uch-bg px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <p class="text-body-sm text-uch-muted">
-                    Mostrando <strong class="text-uch-navy">{{ $historial->count() }}</strong> de
-                    <strong class="text-uch-navy">{{ $historial->total() }}</strong> pedidos finalizados
-                </p>
+            <div class="hv-pager">
+                <p>Mostrando <strong>{{ $historial->count() }}</strong> de <strong>{{ $historial->total() }}</strong> pedidos</p>
                 {{ $historial->links() }}
             </div>
         </section>

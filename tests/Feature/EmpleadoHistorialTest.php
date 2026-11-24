@@ -13,7 +13,7 @@ class EmpleadoHistorialTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
-    public function test_history_shows_only_finished_orders_with_their_source_and_ticket_link(): void
+    public function test_history_lists_every_order_of_the_day_with_its_source_and_ticket_link(): void
     {
         $this->travelTo('2026-11-23 13:00:00');
 
@@ -36,58 +36,83 @@ class EmpleadoHistorialTest extends TestCase
 
         $this->actingAs($empleado)->get('/empleado/historial')
             ->assertOk()
-            ->assertSee('Historial de pedidos')
-            ->assertSee('Tickets entregados')
+            ->assertSee('Historial y cuadre de caja')
+            ->assertSee('Venta de hoy')
             ->assertSee('Mostrador Finalizado')
             ->assertSee('Empanada finalizada')
             ->assertSee('Anulado')
             ->assertSee('Web Finalizada')
             ->assertSee('Ver ticket')
-            ->assertDontSee('Pedido Activo');
+            ->assertSee('Pedido Activo');
     }
 
-    public function test_arqueo_counts_only_delivered_orders_by_canonical_payment_method(): void
+    public function test_cuadre_adds_every_paid_order_but_skips_cancelled_ones(): void
     {
         $this->travelTo('2026-11-23 13:00:00');
 
-        $this->crearPedido([
-            'origen' => Pedido::ORIGEN_CAJA,
-            'estado' => 'entregado',
-            'total' => 10,
-            'metodo_pago' => Pedido::METODO_EFECTIVO,
-        ]);
-        $this->crearPedido([
-            'origen' => Pedido::ORIGEN_CAJA,
-            'estado' => 'entregado',
-            'total' => 20,
-            'metodo_pago' => Pedido::METODO_YAPE_PLIN,
-        ]);
-        $this->crearPedido([
-            'origen' => Pedido::ORIGEN_CAJA,
-            'estado' => 'entregado',
-            'total' => 30,
-            'metodo_pago' => Pedido::METODO_TARJETA,
-        ]);
-        $this->crearPedido([
-            'origen' => Pedido::ORIGEN_CAJA,
-            'estado' => 'cancelado',
-            'total' => 100,
-            'metodo_pago' => Pedido::METODO_EFECTIVO,
-        ]);
-        $this->crearPedido(['estado' => 'pendiente', 'total' => 500]);
-        $this->crearPedido([
-            'estado' => 'entregado',
-            'total' => 999,
-            'metodo_pago' => 'Yape ••• 001',
-        ]);
+        $this->crearPedido(['origen' => Pedido::ORIGEN_CAJA, 'estado' => 'entregado', 'total' => 10, 'metodo_pago' => Pedido::METODO_EFECTIVO]);
+        $this->crearPedido(['origen' => Pedido::ORIGEN_CAJA, 'estado' => 'entregado', 'total' => 20, 'metodo_pago' => Pedido::METODO_YAPE_PLIN]);
+        $this->crearPedido(['origen' => Pedido::ORIGEN_CAJA, 'estado' => 'entregado', 'total' => 30, 'metodo_pago' => Pedido::METODO_TARJETA]);
+        $this->crearPedido(['origen' => Pedido::ORIGEN_CAJA, 'estado' => 'cancelado', 'total' => 100, 'metodo_pago' => Pedido::METODO_EFECTIVO]);
+        $this->crearPedido(['estado' => 'pendiente', 'total' => 500, 'metodo_pago' => Pedido::METODO_EFECTIVO]);
+        $this->crearPedido(['estado' => 'entregado', 'total' => 999, 'metodo_pago' => 'Yape ••• 001']);
 
         $this->actingAs(User::factory()->empleado()->create())->get('/empleado/historial')
             ->assertOk()
-            ->assertViewHas('arqueo.efectivo', 10.0)
+            ->assertSee('Cuadre de caja')
+            ->assertViewHas('arqueo.efectivo', 510.0)
             ->assertViewHas('arqueo.billeteras', 20.0)
             ->assertViewHas('arqueo.tarjeta', 30.0)
-            ->assertViewHas('arqueo.tickets', 4)
-            ->assertDontSee('Pedido Pendiente');
+            ->assertViewHas('arqueo.otros', 999.0)
+            ->assertViewHas('arqueo.total', 1559.0)
+            ->assertViewHas('arqueo.tickets', 5)
+            ->assertViewHas('arqueo.anulados', 1)
+            ->assertViewHas('arqueo.anuladosMonto', 100.0)
+            ->assertViewHas('arqueo.sinEntregar', 1);
+    }
+
+    public function test_date_range_adds_up_every_day_and_leaves_out_other_days(): void
+    {
+        $this->travelTo('2026-11-20 10:00:00');
+        $this->crearPedido(['cliente_nombre_caja' => 'Fuera Del Rango', 'estado' => 'entregado', 'total' => 1000]);
+
+        $this->travelTo('2026-11-22 10:00:00');
+        $this->crearPedido(['cliente_nombre_caja' => 'Venta Sabado', 'estado' => 'entregado', 'total' => 40]);
+
+        $this->travelTo('2026-11-23 23:30:00');
+        $this->crearPedido(['cliente_nombre_caja' => 'Venta Domingo', 'estado' => 'entregado', 'total' => 60]);
+
+        $this->travelTo('2026-11-24 09:00:00');
+        $this->crearPedido(['cliente_nombre_caja' => 'Venta Lunes', 'estado' => 'entregado', 'total' => 5000]);
+
+        $this->actingAs(User::factory()->empleado()->create())->get('/empleado/historial?desde=2026-11-22&hasta=2026-11-23')
+            ->assertOk()
+            ->assertViewHas('desdeHistorial', '2026-11-22')
+            ->assertViewHas('hastaHistorial', '2026-11-23')
+            ->assertViewHas('arqueo.total', 100.0)
+            ->assertViewHas('arqueo.tickets', 2)
+            ->assertViewHas('porDia', fn ($dias): bool => $dias->count() === 2)
+            ->assertSee('Venta Sabado')
+            ->assertSee('Venta Domingo')
+            ->assertDontSee('Fuera Del Rango')
+            ->assertDontSee('Venta Lunes');
+    }
+
+    public function test_reversed_range_is_swapped_and_the_state_filter_limits_the_table_only(): void
+    {
+        $this->travelTo('2026-11-23 13:00:00');
+
+        $this->crearPedido(['cliente_nombre_caja' => 'Entregado Visible', 'estado' => 'entregado', 'total' => 10]);
+        $this->crearPedido(['cliente_nombre_caja' => 'Anulado Oculto', 'estado' => 'cancelado', 'total' => 7]);
+
+        $this->actingAs(User::factory()->empleado()->create())->get('/empleado/historial?desde=2026-11-24&hasta=2026-11-23&estado=entregado')
+            ->assertOk()
+            ->assertViewHas('desdeHistorial', '2026-11-23')
+            ->assertViewHas('hastaHistorial', '2026-11-24')
+            ->assertViewHas('estadoFiltro', 'entregado')
+            ->assertSee('Entregado Visible')
+            ->assertDontSee('Anulado Oculto')
+            ->assertViewHas('arqueo.anulados', 1);
     }
 
     public function test_origin_filter_excludes_orders_from_other_channels(): void
@@ -194,11 +219,13 @@ class EmpleadoHistorialTest extends TestCase
         $ahora = $this->freezeTime();
 
         $this->actingAs(User::factory()->empleado()->create())
-            ->get('/empleado/historial?origen=invalido&metodo_pago=invalido&fecha=no-valida')
+            ->get('/empleado/historial?origen=invalido&metodo_pago=invalido&estado=invalido&desde=no-valida&hasta=2026-02-31')
             ->assertOk()
             ->assertViewHas('origenFiltro', 'todos')
             ->assertViewHas('metodoFiltro', 'todos')
-            ->assertViewHas('fechaHistorial', $ahora->toDateString());
+            ->assertViewHas('estadoFiltro', 'todos')
+            ->assertViewHas('desdeHistorial', $ahora->toDateString())
+            ->assertViewHas('hastaHistorial', $ahora->toDateString());
     }
 
     /**

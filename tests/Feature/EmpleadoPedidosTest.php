@@ -155,13 +155,24 @@ class EmpleadoPedidosTest extends TestCase
             ->assertSee('Café con leche')
             ->assertSee('S/ 15.00')
             ->assertSee('Mostrador · Ana Cajera')
-            ->assertSee('Para llevar')
+            ->assertDontSee('Para llevar')
             ->assertSee('Monto recibido (Efectivo)')
             ->assertSee('Vuelto entregado')
             ->assertSee('S/ 5.00')
             ->assertSee('OP: CAJA-20261123-0001')
             ->assertSee('Imprimir ticket')
-            ->assertSee('window.print()', false);
+            ->assertSee('window.print()', false)
+            ->assertDontSee('afterprint', false);
+    }
+
+    public function test_ticket_prints_automatically_right_after_a_sale(): void
+    {
+        $pedido = $this->crearPedido(['origen' => Pedido::ORIGEN_CAJA, 'estado' => 'pendiente']);
+
+        $this->actingAs(User::factory()->empleado()->create())->get('/empleado/pedidos/'.$pedido->id.'/ticket?imprimir=1')
+            ->assertOk()
+            ->assertSee('afterprint', false)
+            ->assertSee('Nueva orden');
     }
 
     public function test_client_is_forbidden_from_opening_an_employee_ticket(): void

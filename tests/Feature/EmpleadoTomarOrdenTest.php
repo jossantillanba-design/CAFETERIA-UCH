@@ -23,13 +23,13 @@ class EmpleadoTomarOrdenTest extends TestCase
 
         $this->actingAs(User::factory()->empleado()->create())->get('/empleado/tomar-orden')
             ->assertOk()
-            ->assertSee('Módulo 1 · Mostrador')
+            ->assertSee('Tomar orden')
             ->assertSee('Menús del día')
-            ->assertSee('Menú universitario')
-            ->assertSee('Adicionales al paso')
-            ->assertSee($producto->nombre)
-            ->assertSee('Ticket actual')
-            ->assertSee('Confirmar cobro y enviar a cocina');
+            ->assertSee('TICKET DE VENTA')
+            ->assertSee('Confirmar')
+            ->assertDontSee('Modalidad')
+            ->assertViewHas('menus', fn ($menus): bool => $menus->contains('titulo', 'Menú universitario'))
+            ->assertViewHas('productos', fn ($productos): bool => $productos->contains('nombre', $producto->nombre));
     }
 
     public function test_cash_order_is_recorded_with_stock_movement_and_change(): void
@@ -51,7 +51,7 @@ class EmpleadoTomarOrdenTest extends TestCase
             'productos' => [
                 ['tipo' => 'producto', 'id' => $producto->id, 'cantidad' => 2],
             ],
-        ])->assertRedirect('/empleado/pedidos')
+        ])->assertRedirectContains('/ticket?imprimir=1')
             ->assertSessionHas('mensaje');
 
         $pedido = Pedido::query()->firstOrFail();
@@ -96,7 +96,7 @@ class EmpleadoTomarOrdenTest extends TestCase
             'productos' => [
                 ['tipo' => 'producto', 'id' => $producto->id, 'cantidad' => 1],
             ],
-        ])->assertRedirect('/empleado/pedidos');
+        ])->assertRedirectContains('/ticket?imprimir=1');
 
         $pedido = Pedido::query()->firstOrFail();
 
@@ -130,7 +130,7 @@ class EmpleadoTomarOrdenTest extends TestCase
                     ],
                 ],
             ],
-        ])->assertRedirect('/empleado/pedidos');
+        ])->assertRedirectContains('/ticket?imprimir=1');
 
         $pedido = Pedido::query()->firstOrFail();
 
