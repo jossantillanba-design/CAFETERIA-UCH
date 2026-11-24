@@ -47,6 +47,11 @@ class MenuDia extends Model
         return $this->hasMany(MenuDiaOpcion::class, 'menu_id')->where('habilitado', true);
     }
 
+    public function imagenes(): HasMany
+    {
+        return $this->hasMany(MenuImagen::class, 'menu_id')->orderBy('orden')->orderBy('id');
+    }
+
     public function scopeActivos(Builder $query): Builder
     {
         return $query->where('activo', true);
