@@ -87,7 +87,7 @@ class ProductoControllerTest extends TestCase
         ]);
     }
 
-    public function test_product_update_does_not_change_stock(): void
+    public function test_product_update_changes_stock_and_records_a_movement(): void
     {
         $producto = Producto::factory()->create([
             'nombre' => 'Nombre anterior',
@@ -98,7 +98,7 @@ class ProductoControllerTest extends TestCase
             ->put('/admin/productos/'.$producto->id, [
                 'nombre' => 'Nombre actualizado',
                 'precio' => 9.50,
-                'stock_actual' => 999,
+                'stock_actual' => 25,
                 'stock_minimo' => 2,
                 'activo' => 1,
             ]);
@@ -107,7 +107,33 @@ class ProductoControllerTest extends TestCase
 
         $producto->refresh();
         $this->assertSame('Nombre actualizado', $producto->nombre);
-        $this->assertSame(10, $producto->stock_actual);
+        $this->assertSame(25, $producto->stock_actual);
+
+        $this->assertDatabaseHas('inventario_movimientos', [
+            'tipo_item' => 'producto',
+            'item_id' => $producto->id,
+            'operacion' => 'ingreso',
+            'cantidad' => 15,
+            'stock_anterior' => 10,
+            'stock_nuevo' => 25,
+        ]);
+    }
+
+    public function test_product_update_without_stock_change_records_no_movement(): void
+    {
+        $producto = Producto::factory()->create(['stock_actual' => 10]);
+
+        $this->actingAs(User::factory()->administrador()->create())
+            ->put('/admin/productos/'.$producto->id, [
+                'nombre' => 'Solo cambia el nombre',
+                'precio' => 4,
+                'stock_actual' => 10,
+                'stock_minimo' => 2,
+                'activo' => 1,
+            ])
+            ->assertRedirect('/admin/productos');
+
+        $this->assertDatabaseCount('inventario_movimientos', 0);
     }
 
     public function test_admin_product_list_shows_catalog_metrics_and_paginated_results(): void
