@@ -953,3 +953,59 @@
     .hasp-hero { padding: 3rem 1.1rem 4rem; }
     .hasp-main { padding: 0 1rem 3rem; }
 }
+
+
+/* ── Checkout (diseño HASP) ── */
+.hasp-co { max-width: 760px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+.hasp-co-header { margin-bottom: 1.4rem; }
+.hasp-co-header h1 { font-size: clamp(1.6rem, 4vw, 2.1rem); font-weight: 700; letter-spacing: -0.02em; margin: 0.6rem 0 0.2rem; }
+.hasp-co-header p, .hasp-co-hint { font-size: 0.82rem; color: var(--hasp-muted); line-height: 1.5; }
+.hasp-co-card { background: var(--hasp-surface); border: 1px solid var(--hasp-border); border-radius: var(--hasp-r-lg); box-shadow: var(--hasp-sh-sm); margin-bottom: 1.2rem; overflow: hidden; }
+.hasp-co-card-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.9rem 1.3rem; border-bottom: 1px solid var(--hasp-border); background: var(--hasp-bg); }
+.hasp-co-card-head h2, .hasp-co-form h2 { font-size: 1rem; font-weight: 700; }
+.hasp-co-card-body { padding: 1.3rem; }
+.hasp-co-empty { padding: 2.5rem 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+.hasp-co-empty h2 { font-size: 1.1rem; font-weight: 700; }
+.hasp-co-empty p { color: var(--hasp-muted); font-size: 0.85rem; margin-bottom: 0.6rem; }
+.hasp-co-empty .hasp-btn-primary { background: var(--hasp-brand); color: #fff; border-radius: var(--hasp-r-sm); padding: 0.7rem 1.4rem; font-weight: 600; font-size: 0.875rem; }
+.hasp-co-line { display: flex; align-items: center; gap: 0.7rem; padding: 0.7rem 0; border-bottom: 1px dashed var(--hasp-border); }
+.hasp-co-line-info { flex: 1; min-width: 0; }
+.hasp-co-line-name { font-size: 0.88rem; font-weight: 600; }
+.hasp-co-line-sub { font-size: 0.72rem; color: var(--hasp-muted); line-height: 1.35; }
+.hasp-co-line-price { font-size: 0.9rem; font-weight: 700; flex-shrink: 0; }
+.hasp-co-total { display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; }
+.hasp-co-total span { font-size: 0.82rem; color: var(--hasp-muted); }
+.hasp-co-total b { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+.hasp-co-test { background: var(--hasp-blue-lt); border: 1px solid rgba(21,101,192,.18); border-radius: var(--hasp-r); margin-bottom: 1.2rem; font-size: 0.8rem; }
+.hasp-co-test summary { cursor: pointer; padding: 0.75rem 1rem; font-weight: 600; color: var(--hasp-blue); }
+.hasp-co-test > div { padding: 0 1rem 1rem; display: grid; gap: 0.5rem; }
+.hasp-co-test ul { list-style: none; display: grid; gap: 0.35rem; }
+.hasp-co-test p { color: var(--hasp-muted); }
+.hasp-co-form { display: flex; flex-direction: column; gap: 1.1rem; }
+.hasp-co-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+.hasp-co-method { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; padding: 0.9rem 0.5rem; border: 1.5px solid var(--hasp-border); border-radius: var(--hasp-r); background: var(--hasp-surface); color: var(--hasp-muted); font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all .15s; }
+.hasp-co-method-icon { font-size: 1.5rem; }
+.hasp-co-method:hover { border-color: var(--hasp-brand); color: var(--hasp-brand); }
+.hasp-co-method.hasp-selected { border-color: var(--hasp-brand); background: var(--hasp-brand-lt); color: var(--hasp-brand); }
+.hasp-co-group { display: flex; flex-direction: column; gap: 1rem; }
+.hasp-co-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.hasp-co-field { display: flex; flex-direction: column; gap: 0.35rem; }
+.hasp-co-field label, .hasp-co-label { font-size: 0.75rem; font-weight: 600; color: var(--hasp-text); }
+.hasp-co-field input[type="text"], .hasp-co-field input[type="password"] { width: 100%; padding: 0.65rem 0.85rem; border: 1.5px solid var(--hasp-border); border-radius: var(--hasp-r-sm); background: var(--hasp-surface); font-family: inherit; font-size: 0.88rem; color: var(--hasp-text); outline: none; box-shadow: none; transition: border-color .15s; }
+.hasp-co-field input:focus { border-color: var(--hasp-brand); box-shadow: none; }
+.hasp-co-radios { display: flex; gap: 1.5rem; font-size: 0.88rem; }
+.hasp-co-radios label { display: flex; align-items: center; gap: 0.4rem; font-weight: 500; }
+.hasp-co-radios input { accent-color: var(--hasp-brand); }
+.hasp-co-error { font-size: 0.75rem; font-weight: 600; color: #B3261E; }
+.hasp-co-alert { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.8rem 1rem; border-radius: var(--hasp-r); font-size: 0.82rem; line-height: 1.5; margin-bottom: 1.2rem; }
+.hasp-co-form .hasp-co-alert { margin-bottom: 0; }
+.hasp-co-alert-error { background: #FDECEA; border: 1px solid #F5C6C2; color: #B3261E; font-weight: 600; }
+.hasp-co-alert-info { background: var(--hasp-brand-lt); border: 1px solid rgba(200,81,27,.2); color: #8A3510; }
+.hasp-co-back { text-align: center; font-size: 0.8rem; font-weight: 600; color: var(--hasp-muted); text-decoration: none; }
+.hasp-co-back:hover { color: var(--hasp-brand); }
+@media (max-width: 640px) {
+    .hasp-co { padding: 1.4rem 1rem 3rem; }
+    .hasp-co-methods { grid-template-columns: 1fr; }
+    .hasp-co-method { flex-direction: row; justify-content: center; }
+    .hasp-co-grid2 { grid-template-columns: 1fr; }
+}
